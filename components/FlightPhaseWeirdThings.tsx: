@@ -1,0 +1,150 @@
+// components/FlightPhaseWeirdThings.tsx
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import {
+  FLIGHT_PHASE_EVENTS,
+  FlightPhase,
+  FlightPhaseEvent
+} from "@/lib/flightPhaseEvents";
+
+interface Props {
+  phase: FlightPhase;
+  visibleCount?: number; // how many clickable items to show at once (default 3)
+}
+
+interface VisibleItem {
+  slotId: number;
+  event: FlightPhaseEvent | null;
+}
+
+export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
+  const allEventsForPhase = useMemo(
+    () => FLIGHT_PHASE_EVENTS[phase] ?? [],
+    [phase]
+  );
+
+  const [seenIds, setSeenIds] = useState<Set<string>>(new Set());
+  const [visibleItems, setVisibleItems] = useState<VisibleItem[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<FlightPhaseEvent | null>(
+    null
+  );
+
+  // Helper: pick a random unseen event; if exhausted, allow repeats from the full list
+  const pickRandomEvent = (excludeIds: Set<string>): FlightPhaseEvent | null => {
+    if (!allEventsForPhase.length) return null;
+
+    const unseen = allEventsForPhase.filter(e => !excludeIds.has(e.id));
+
+    const pool = unseen.length > 0 ? unseen : allEventsForPhase;
+    const idx = Math.floor(Math.random() * pool.length);
+    return pool[idx] ?? null;
+  };
+
+  // Initialize / reset when phase changes
+  useEffect(() => {
+    const newSeen = new Set<string>();
+    const initialVisible: VisibleItem[] = [];
+
+    for (let i = 0; i < visibleCount; i++) {
+      const event = pickRandomEvent(newSeen);
+      if (event) {
+        newSeen.add(event.id);
+        initialVisible.push({ slotId: i, event });
+      } else {
+        initialVisible.push({ slotId: i, event: null });
+      }
+    }
+
+    setSeenIds(newSeen);
+    setVisibleItems(initialVisible);
+    setSelectedEvent(null);
+  }, [phase, visibleCount]); // re-run on phase change
+
+  const handleClick = (slotId: number, event: FlightPhaseEvent | null) => {
+    if (!event) return;
+
+    setSelectedEvent(event);
+
+    setVisibleItems(prev => {
+      const newSeen = new Set(seenIds);
+      // mark the clicked one as seen
+      newSeen.add(event.id);
+
+      // pick a new event that hasn't been seen recently
+      const replacement = pickRandomEvent(newSeen);
+      if (replacement) {
+        newSeen.add(replacement.id);
+      }
+
+      setSeenIds(newSeen);
+
+      return prev.map(item => {
+        if (item.slotId !== slotId) return item;
+        return { ...item, event: replacement ?? item.event };
+      });
+    });
+  };
+
+  if (!allEventsForPhase.length) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 space-y-4">
+      {/* Clickable list */}
+      <div className="flex flex-wrap gap-2">
+        {visibleItems.map(item =>
+          item.event ? (
+            <button
+              key={item.slotId}
+              onClick={() => handleClick(item.slotId, item.event)}
+              className="rounded-full border px-3 py-1 text-sm hover:bg-black/5 transition"
+            >
+              {item.event.trigger}
+            </button>
+          ) : (
+            <span
+              key={item.slotId}
+              className="rounded-full border border-dashed px-3 py-1 text-sm text-gray-400"
+            >
+              No more items for this phase
+            </span>
+          )
+        )}
+      </div>
+
+      {/* Explanation panel */}
+      {selectedEvent && (
+        <div className="rounded-xl border p-3 text-sm space-y-2 bg-black/3">
+          <div className="text-xs uppercase tracking-wide text-gray-500">
+            What’s actually happening
+          </div>
+          <div>
+            <div className="font-medium mb-1">
+              {selectedEvent.trigger}
+            </div>
+            <p className="mb-2">
+              {selectedEvent.explanation}
+            </p>
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Why this exists
+            </div>
+            <p>{selectedEvent.whyItExists}</p>
+          </div>
+
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mt-2">
+              If this part misbehaved
+            </div>
+            <p>{selectedEvent.ifItFailed}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+ß

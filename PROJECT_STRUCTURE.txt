@@ -1,0 +1,62 @@
+.
+├── .DS_Store
+├── .env.local
+├── .env.local.example
+├── .gitignore
+├── PROJECT_STATUS.md
+├── PROJECT_STRUCTURE.txt
+├── README.md
+├── app
+│   ├── api
+│   │   ├── aviation-explanation
+│   │   │   └── route.ts
+│   │   ├── chat
+│   │   │   └── route.ts
+│   │   ├── chat-v2
+│   │   │   └── route.ts
+│   │   ├── db-test
+│   │   │   └── route.ts
+│   │   └── ese-test
+│   │       └── route.ts
+│   ├── favicon.ico
+│   ├── flight-companion
+│   │   └── page.tsx
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+├── components
+│   ├── FlightStatus.tsx
+│   ├── OtieDebugPanel.tsx
+│   ├── breathwork
+│   ├── chat
+│   └── layout
+├── data
+├── emotionalstateengine.ts
+├── eslint.config.mjs
+├── lib
+│   ├── EmotionalStateEngine.ts
+│   ├── aviationExplanations.ts
+│   ├── db-client.ts
+│   ├── db-types.ts
+│   ├── mockUserState.ts
+│   ├── otieOrchestrator.ts
+│   └── supabaseClient.ts
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── project-structure.txt
+├── public
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── next.svg
+│   ├── vercel.svg
+│   └── window.svg
+├── schema.sql
+├── scripts
+│   └── setup-test-data.js
+├── tsconfig.json
+└── types
+
+19 directories, 41 files

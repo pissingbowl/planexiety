@@ -1,0 +1,9 @@
+export const OTIE_MODES = {
+  BASELINE: "BASELINE",
+  CALM_REFRAME: "CALM_REFRAME",
+  FEAR_SPIKE: "FEAR_SPIKE",
+  TURBULENCE_SUPPORT: "TURBULENCE_SUPPORT",
+} as const;
+
+export type OtieMode = typeof OTIE_MODES[keyof typeof OTIE_MODES];
+

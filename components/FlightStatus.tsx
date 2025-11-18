@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { FlightPhaseWeirdThings } from "./FlightPhaseWeirdThings";
 import { AccordionSection } from "./AccordionSection";
+import LiveFlightMap from "./LiveFlightMap";
 import type { FlightPhase } from "@/lib/flightPhaseEvents";
 
 // --- Tiny inline flight map ---
@@ -327,11 +328,11 @@ export default function FlightStatus() {
           {/* MAP */}
           <AccordionSection
             title="MAP"
-            subtitle="A quick glance at where you are along the route."
+            subtitle="Live flights across the USA. Click any aircraft for details."
             isOpen={openAccordion === 'MAP'}
             onToggle={() => setOpenAccordion(openAccordion === 'MAP' ? null : 'MAP')}
           >
-            <FlightMap from={from} to={to} progressPercent={progress} />
+            <LiveFlightMap />
           </AccordionSection>
 
           {/* WEATHER */}

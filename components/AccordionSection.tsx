@@ -1,27 +1,27 @@
 "use client";
 
-import { useState, ReactNode } from "react";
+import { ReactNode } from "react";
 
 interface AccordionSectionProps {
   title: string;
   subtitle?: string;
-  defaultOpen?: boolean;
+  isOpen: boolean;
+  onToggle: () => void;
   children: ReactNode;
 }
 
 export function AccordionSection({
   title,
   subtitle,
-  defaultOpen = false,
+  isOpen,
+  onToggle,
   children,
 }: AccordionSectionProps) {
-  const [open, setOpen] = useState(defaultOpen);
-
   return (
     <section className="rounded-2xl border border-sky-900/60 bg-slate-950/60 overflow-hidden">
       <button
         type="button"
-        onClick={() => setOpen(o => !o)}
+        onClick={onToggle}
         className="w-full flex items-center justify-between px-4 py-3 md:px-5 md:py-4"
       >
         <div className="text-left">
@@ -35,11 +35,11 @@ export function AccordionSection({
           )}
         </div>
         <div className="ml-4 flex h-7 w-7 items-center justify-center rounded-full border border-sky-700/70 bg-sky-900/20 text-sky-200 text-xs">
-          {open ? "−" : "+"}
+          {isOpen ? "−" : "+"}
         </div>
       </button>
 
-      {open && (
+      {isOpen && (
         <div className="border-t border-sky-900/60 px-4 py-4 md:px-5 md:py-5 text-sm text-slate-100 space-y-3">
           {children}
         </div>

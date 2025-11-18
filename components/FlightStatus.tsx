@@ -215,6 +215,7 @@ export default function FlightStatus() {
   const [progress, setProgress] = useState(12); // start somewhere early
   const [nerdOpen, setNerdOpen] = useState(false);
   const [segmentIndex, setSegmentIndex] = useState(1); // start at mid-cruise
+  const [openAccordion, setOpenAccordion] = useState<string | null>(null);
 
   // Simulate the flight progressing over time
   useEffect(() => {
@@ -327,6 +328,8 @@ export default function FlightStatus() {
           <AccordionSection
             title="MAP"
             subtitle="A quick glance at where you are along the route."
+            isOpen={openAccordion === 'MAP'}
+            onToggle={() => setOpenAccordion(openAccordion === 'MAP' ? null : 'MAP')}
           >
             <FlightMap from={from} to={to} progressPercent={progress} />
           </AccordionSection>
@@ -335,6 +338,8 @@ export default function FlightStatus() {
           <AccordionSection
             title="WEATHER"
             subtitle="Coming soon: real-time weather at origin, en route, and destination."
+            isOpen={openAccordion === 'WEATHER'}
+            onToggle={() => setOpenAccordion(openAccordion === 'WEATHER' ? null : 'WEATHER')}
           >
             <p className="text-slate-300">
               Weather intelligence will live here — conditions at your departure and arrival,
@@ -346,6 +351,8 @@ export default function FlightStatus() {
           <AccordionSection
             title="WHAT'S AROUND ME?"
             subtitle="A sense of what you're flying over right now."
+            isOpen={openAccordion === 'AROUND'}
+            onToggle={() => setOpenAccordion(openAccordion === 'AROUND' ? null : 'AROUND')}
           >
             <p className="text-slate-300">
               This will eventually show nearby cities, terrain, and other reference points
@@ -357,6 +364,8 @@ export default function FlightStatus() {
           <AccordionSection
             title="TURBULENCE ANALYSIS"
             subtitle="Why the bumps feel big, and why the jet is built for far more."
+            isOpen={openAccordion === 'TURBULENCE'}
+            onToggle={() => setOpenAccordion(openAccordion === 'TURBULENCE' ? null : 'TURBULENCE')}
           >
             <p className="text-slate-300">
               This section will summarize current and forecast turbulence along the route,
@@ -368,6 +377,8 @@ export default function FlightStatus() {
           <AccordionSection
             title="THINGS THAT FEEL WEIRD BUT ARE TOTALLY NORMAL"
             subtitle="Tap anything that sounds familiar to see what it really is, why it exists, and what covers you if that part misbehaves."
+            isOpen={openAccordion === 'WEIRD'}
+            onToggle={() => setOpenAccordion(openAccordion === 'WEIRD' ? null : 'WEIRD')}
           >
             <FlightPhaseWeirdThings phase={normalizedPhase} />
           </AccordionSection>
@@ -376,6 +387,8 @@ export default function FlightStatus() {
           <AccordionSection
             title="WHAT THE PILOTS ARE DOING RIGHT NOW"
             subtitle="A grounded view of their job in this phase of flight."
+            isOpen={openAccordion === 'PILOTS'}
+            onToggle={() => setOpenAccordion(openAccordion === 'PILOTS' ? null : 'PILOTS')}
           >
             <div className="grid gap-6 md:grid-cols-2">
               <div>

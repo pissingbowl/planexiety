@@ -332,7 +332,9 @@ export default function FlightStatus() {
             isOpen={openAccordion === 'MAP'}
             onToggle={() => setOpenAccordion(openAccordion === 'MAP' ? null : 'MAP')}
           >
-            <LiveFlightMap />
+            <div onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
+              <LiveFlightMap />
+            </div>
           </AccordionSection>
 
           {/* WEATHER */}

@@ -75,12 +75,18 @@ export function MapContainerWrapper({ aircraft, loading }: Props) {
   }
 
   return (
-    <MapContainer
-      center={[39.0, -95.0]}
-      zoom={5}
-      className="h-[500px] w-full rounded-lg"
-      zoomControl={false}
+    <div 
+      className="relative"
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
     >
+      <MapContainer
+        center={[39.0, -95.0]}
+        zoom={5}
+        className="h-[500px] w-full rounded-lg"
+        zoomControl={false}
+      >
       <TileLayer
         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &amp; <a href="https://carto.com/">CARTO</a>'
@@ -117,6 +123,7 @@ export function MapContainerWrapper({ aircraft, loading }: Props) {
           </Popup>
         </CircleMarker>
       ))}
-    </MapContainer>
+      </MapContainer>
+    </div>
   );
 }

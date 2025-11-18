@@ -1,5 +1,4 @@
 import FlightStatus from '../components/FlightStatus';
-import OtieDebugPanel from "../components/OtieDebugPanel";
 import ChatInterface from "../components/ChatInterface";
 
 export default function Home() {
@@ -19,9 +18,6 @@ export default function Home() {
 
         {/* Flight Status */}
         <FlightStatus />
-
-        {/* Debug Panel */}
-        <OtieDebugPanel />
       </div>
     </main>
   );

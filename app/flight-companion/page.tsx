@@ -1,7 +1,6 @@
 // app/page.tsx
 import ChatInterface from "@/components/ChatInterface";
 import FlightStatus from "@/components/FlightStatus";
-import OtieDebugPanel from "@/components/OtieDebugPanel";
 
 export default function Home() {
   return (
@@ -21,9 +20,6 @@ export default function Home() {
 
         {/* Current flight + weird-but-normal tools */}
         <FlightStatus />
-
-        {/* OTIE debug / dev view */}
-        <OtieDebugPanel />
       </div>
     </main>
   );

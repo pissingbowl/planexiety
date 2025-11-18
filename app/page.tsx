@@ -17,7 +17,7 @@ export default function Home() {
       <div 
         className="fixed bottom-20 right-10 w-72 h-72 opacity-[0.12] pointer-events-none float-animation"
         style={{
-          backgroundImage: 'url("/otie-character.jpg")',
+          backgroundImage: 'url("/otie-character.png")',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',

@@ -3,25 +3,34 @@ import ChatInterface from "../components/ChatInterface";
 
 export default function Home() {
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gradient-to-b from-gray-950 via-black to-blue-950 text-white py-8 px-4 relative overflow-hidden">
-      {/* OTIE Background Character - Subtle floating presence */}
+    <main className="flex flex-col items-center min-h-screen bg-gradient-to-b from-gray-900 via-gray-950 to-blue-950 text-white py-8 px-4 relative overflow-hidden">
+      {/* OTIE Bubble Effect - creates visibility outline */}
       <div 
-        className="fixed bottom-20 right-10 w-72 h-72 opacity-[0.08] pointer-events-none float-animation"
+        className="fixed bottom-16 right-6 w-80 h-80 opacity-[0.15] pointer-events-none float-animation"
+        style={{
+          background: 'radial-gradient(circle at center, transparent 30%, rgba(147, 197, 253, 0.2) 50%, transparent 70%)',
+          filter: 'blur(20px)',
+        }}
+      />
+      
+      {/* OTIE Background Character - Slightly more present */}
+      <div 
+        className="fixed bottom-20 right-10 w-72 h-72 opacity-[0.12] pointer-events-none float-animation"
         style={{
           backgroundImage: 'url("/otie-character.jpg")',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',
-          filter: 'blur(0.5px) brightness(1.2)',
+          filter: 'blur(0.3px) brightness(1.3) contrast(1.1)',
         }}
       />
       
-      {/* Soft glow behind OTIE */}
+      {/* Soft outer glow behind OTIE */}
       <div 
-        className="fixed bottom-20 right-10 w-96 h-96 opacity-[0.03] pointer-events-none float-animation"
+        className="fixed bottom-20 right-10 w-96 h-96 opacity-[0.04] pointer-events-none float-animation"
         style={{
-          background: 'radial-gradient(circle, rgba(147, 197, 253, 0.3) 0%, transparent 70%)',
-          filter: 'blur(60px)',
+          background: 'radial-gradient(circle, rgba(147, 197, 253, 0.4) 0%, transparent 70%)',
+          filter: 'blur(50px)',
         }}
       />
       

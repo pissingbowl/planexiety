@@ -91,8 +91,8 @@ export function MapContainerWrapper({ aircraft, loading }: Props) {
         <CircleMarker
           key={flight.icao24}
           center={[flight.latitude!, flight.longitude!]}
+          radius={4}
           pathOptions={{
-            radius: 4,
             fillColor: getAircraftColor(flight.baro_altitude, flight.on_ground),
             color: "#000",
             weight: 1,

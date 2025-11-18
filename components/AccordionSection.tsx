@@ -40,7 +40,10 @@ export function AccordionSection({
       </button>
 
       {isOpen && (
-        <div className="border-t border-sky-900/60 px-4 py-4 md:px-5 md:py-5 text-sm text-slate-100 space-y-3">
+        <div 
+          className="border-t border-sky-900/60 px-4 py-4 md:px-5 md:py-5 text-sm text-slate-100 space-y-3"
+          onClick={(e) => e.stopPropagation()}
+        >
           {children}
         </div>
       )}

@@ -216,7 +216,7 @@ export default function FlightStatus() {
   const [progress, setProgress] = useState(12); // start somewhere early
   const [nerdOpen, setNerdOpen] = useState(false);
   const [segmentIndex, setSegmentIndex] = useState(1); // start at mid-cruise
-  const [openAccordion, setOpenAccordion] = useState<string | null>(null);
+  const [openAccordion, setOpenAccordion] = useState<string | null>('MAP'); // MAP open by default
 
   // Simulate the flight progressing over time
   useEffect(() => {

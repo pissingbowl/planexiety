@@ -13,7 +13,7 @@ export default function Home() {
         }}
       />
       
-      {/* OTIE Background Character - Slightly more present */}
+      {/* OTIE Background Character - Slightly more present with lifelike animation */}
       <div 
         className="fixed bottom-20 right-10 w-72 h-72 opacity-[0.12] pointer-events-none float-animation"
         style={{
@@ -21,7 +21,8 @@ export default function Home() {
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',
-          filter: 'blur(0.3px) brightness(1.3) contrast(1.1)',
+          filter: 'blur(0.3px)',
+          transformOrigin: 'center center',
         }}
       />
       

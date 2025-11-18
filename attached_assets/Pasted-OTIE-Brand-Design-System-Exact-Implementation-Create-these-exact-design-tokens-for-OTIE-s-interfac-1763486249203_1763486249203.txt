@@ -1,0 +1,144 @@
+OTIE Brand Design System - Exact Implementation
+Create these exact design tokens for OTIE's interface:
+Color Palette
+css:root {
+  /* Primary - Deep space/aviation night */
+  --otie-space: #0A0E27;        /* Main background - deep aviation blue-black */
+  --otie-cosmic: #151B3D;        /* Secondary backgrounds - instrument panel blue */
+  --otie-horizon: #1E2749;       /* Elevated surfaces - pre-dawn sky */
+  
+  /* Accent - Aviation instruments */
+  --otie-altitude: #00D4FF;      /* Primary action - artificial horizon blue */
+  --otie-beacon: #FF6B35;        /* Warnings/important - beacon orange */
+  --otie-runway: #4ECDC4;        /* Success states - runway lighting teal */
+  
+  /* Functional */
+  --otie-text-primary: #FFFFFF;   /* Main text */
+  --otie-text-secondary: #94A3B8; /* Subdued text - like dimmed cockpit labels */
+  --otie-text-tertiary: #64748B;  /* Minimal text */
+  
+  /* Derivatives/Predictions */
+  --otie-derivative-rising: #FFB700;  /* Anxiety climbing - amber warning */
+  --otie-derivative-falling: #00FF88; /* Anxiety reducing - green recovery */
+  --otie-derivative-neutral: #00D4FF; /* Stable state */
+}
+Typography
+css/* Use system fonts that feel technical but readable */
+font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace; /* For data/numbers */
+font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif; /* For UI text */
+Core UI Components
+1. Main Container
+jsx<div style={{
+  background: 'linear-gradient(135deg, var(--otie-space) 0%, var(--otie-cosmic) 100%)',
+  minHeight: '100vh',
+  position: 'relative'
+}}>
+  {/* Animated star field or particle effect in background */}
+  <ParticleField opacity={0.3} />
+</div>
+2. Flight Progress Bar
+jsx// Aviation-inspired segmented progress bar
+<div className="flight-progress" style={{
+  background: 'rgba(30, 39, 73, 0.5)',
+  border: '1px solid var(--otie-altitude)',
+  borderRadius: '4px',
+  padding: '2px',
+  backdropFilter: 'blur(10px)'
+}}>
+  <div className="progress-segments">
+    {['Taxi', 'Takeoff', 'Cruise', 'Descent', 'Landing'].map(phase => (
+      <div className="segment" style={{
+        flex: 1,
+        height: '40px',
+        borderRight: '1px solid rgba(0, 212, 255, 0.2)',
+        background: isActive ? 
+          'linear-gradient(90deg, transparent, var(--otie-altitude))' : 
+          'transparent'
+      }}/>
+    ))}
+  </div>
+</div>
+3. Derivative Visualization
+jsx// Real-time anxiety derivative meter - like an aircraft VSI (Vertical Speed Indicator)
+<div className="derivative-gauge" style={{
+  width: '200px',
+  height: '200px',
+  borderRadius: '50%',
+  background: 'radial-gradient(circle, var(--otie-horizon), var(--otie-cosmic))',
+  border: '2px solid var(--otie-altitude)',
+  boxShadow: '0 0 30px rgba(0, 212, 255, 0.3)'
+}}>
+  {/* Needle that moves based on derivative */}
+  <div className="needle" style={{
+    transform: `rotate(${derivativeAngle}deg)`,
+    background: derivativeRate > 10 ? 'var(--otie-beacon)' : 'var(--otie-altitude)'
+  }}/>
+</div>
+4. Intervention Cards
+jsx<div className="intervention-card" style={{
+  background: 'rgba(30, 39, 73, 0.7)',
+  backdropFilter: 'blur(20px)',
+  border: '1px solid var(--otie-altitude)',
+  borderRadius: '8px',
+  padding: '20px',
+  boxShadow: '0 4px 20px rgba(0, 212, 255, 0.1)',
+  animation: 'pulse 2s ease-in-out infinite'
+}}>
+  {/* Content */}
+</div>
+Animation Guidelines
+css/* Smooth, confidence-inspiring transitions */
+@keyframes pulse {
+  0%, 100% { boxShadow: '0 0 20px rgba(0, 212, 255, 0.2)'; }
+  50% { boxShadow: '0 0 40px rgba(0, 212, 255, 0.4)'; }
+}
+
+/* All transitions should be smooth like aircraft movements */
+transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+Visual Effects
+
+Subtle particle field - Like stars visible from cockpit at altitude
+Soft glows on interactive elements - Like backlit cockpit buttons
+No harsh edges - Everything has subtle borders with glow
+Glass morphism on cards - Like looking through aircraft windows
+
+Control Styling
+jsx// Buttons look like cockpit switches
+<button style={{
+  background: 'linear-gradient(135deg, var(--otie-horizon), var(--otie-cosmic))',
+  border: '2px solid var(--otie-altitude)',
+  color: 'var(--otie-text-primary)',
+  padding: '12px 24px',
+  borderRadius: '6px',
+  fontSize: '14px',
+  fontWeight: '600',
+  letterSpacing: '0.5px',
+  textTransform: 'uppercase',
+  cursor: 'pointer',
+  transition: 'all 0.3s ease',
+  boxShadow: '0 2px 10px rgba(0, 212, 255, 0.2)',
+  ':hover': {
+    boxShadow: '0 4px 20px rgba(0, 212, 255, 0.4)',
+    transform: 'translateY(-2px)'
+  }
+}}>
+  ENGAGE
+</button>
+Mobile Responsive
+
+Dark theme ONLY (no light mode - cockpits are dark for a reason)
+Minimum touch target 44x44px
+High contrast ratios (WCAG AAA on critical elements)
+Smooth 60fps animations even on older devices
+
+The Overall Feel
+The interface should feel like:
+
+A modern aircraft instrument panel
+Trustworthy and technical but not intimidating
+Calming through its precision
+Professional aviation software meets meditation app
+The bridge between human anxiety and cosmic understanding
+
+Every element should whisper "I know exactly what I'm doing" while being approachable enough for someone having a panic attack to navigate.
+Implement this design system now in the React app. Start with the main container, flight progress bar, and derivative gauge.

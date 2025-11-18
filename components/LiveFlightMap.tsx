@@ -46,6 +46,8 @@ export default function LiveFlightMap() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const maxRetries = 3;
 
   // USA bounds: roughly lat 24-49, lon -125 to -66
   const USA_BOUNDS = {
@@ -55,15 +57,44 @@ export default function LiveFlightMap() {
     lomax: -66.0,
   };
 
-  const fetchFlights = async () => {
+  const fetchFlights = async (isRetry = false) => {
     try {
       // OpenSky Network API - free, no auth required for basic usage
       const url = `https://opensky-network.org/api/states/all?lamin=${USA_BOUNDS.lamin}&lomin=${USA_BOUNDS.lomin}&lamax=${USA_BOUNDS.lamax}&lomax=${USA_BOUNDS.lomax}`;
       
       const response = await fetch(url);
       
+      // Handle rate limiting (429)
+      if (response.status === 429) {
+        console.warn("Rate limited by OpenSky Network API");
+        
+        if (retryCount < maxRetries && !isRetry) {
+          // Exponential backoff: wait 2^retryCount seconds
+          const backoffTime = Math.pow(2, retryCount) * 1000;
+          console.log(`Retrying in ${backoffTime/1000} seconds...`);
+          setError(`Rate limited. Retrying in ${backoffTime/1000}s...`);
+          setRetryCount(retryCount + 1);
+          
+          setTimeout(() => {
+            fetchFlights(true);
+          }, backoffTime);
+          return;
+        } else {
+          // Max retries reached or already retrying, use simulated data
+          console.log("Using simulated flight data due to rate limiting");
+          setError("Live data temporarily unavailable. Showing simulated flights.");
+          generateSimulatedFlights();
+          setLoading(false);
+          return;
+        }
+      }
+      
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error(`HTTP error! status: ${response.status}`);
+        setError("Unable to fetch live data. Using simulated flights.");
+        generateSimulatedFlights();
+        setLoading(false);
+        return;
       }
       
       const data = await response.json();
@@ -95,10 +126,11 @@ export default function LiveFlightMap() {
         setAircraft(parsedAircraft);
         setLastUpdate(new Date());
         setError(null);
+        setRetryCount(0); // Reset retry count on success
       }
     } catch (err) {
       console.error("Error fetching flight data:", err);
-      setError("Unable to fetch flight data. Using simulated data.");
+      setError("Unable to fetch flight data. Using simulated flights.");
       // Use simulated data as fallback
       generateSimulatedFlights();
     } finally {
@@ -145,13 +177,19 @@ export default function LiveFlightMap() {
   };
 
   useEffect(() => {
-    // Initial fetch
-    fetchFlights();
+    // Start with simulated data immediately to avoid initial rate limiting
+    generateSimulatedFlights();
+    setLoading(false);
     
-    // Update every 30 seconds (OpenSky has rate limits)
+    // Try to fetch real data after a short delay
+    setTimeout(() => {
+      fetchFlights();
+    }, 2000);
+    
+    // Update every 2 minutes to avoid rate limiting (OpenSky has strict limits for anonymous users)
     updateIntervalRef.current = setInterval(() => {
       fetchFlights();
-    }, 30000);
+    }, 120000); // 2 minutes instead of 30 seconds
     
     return () => {
       if (updateIntervalRef.current) {

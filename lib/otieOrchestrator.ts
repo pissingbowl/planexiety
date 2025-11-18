@@ -20,13 +20,21 @@ export async function processOTIEMessage(
   // 2) Get flight context (currently mock)
   const flight = getMockFlightContext();
 
-  // 3) Decide OTIE mode with smarter logic
-  const mode = selectOTIEMode(anxietyLevel, state, flight);
+  // 3) Adapt state to expected format for mode selector
+  const adaptedState = {
+    lastAnxietyLevel: state.anxietyLevel,
+    averageAnxiety: state.anxietyLevel,
+    spikesInRow: state.anxietyLevel >= 7 ? 1 : 0,
+    trend: "stable" as const,
+  };
 
-  // 4) Build OTIE prompt
-  const prompt = buildOTIEPrompt(mode, message, state, flight);
+  // 4) Decide OTIE mode with smarter logic
+  const mode = selectOTIEMode(anxietyLevel, adaptedState, flight);
 
-  // 5) Call Anthropic (Haiku)
+  // 5) Build OTIE prompt
+  const prompt = buildOTIEPrompt(mode, message, adaptedState, flight);
+
+  // 6) Call Anthropic (Haiku)
   const completion = await client.messages.create({
     model: "claude-3-haiku-20240307",
     max_tokens: 350,
@@ -38,12 +46,10 @@ export async function processOTIEMessage(
     ],
   });
 
-  const text =
-    (completion.content &&
-      (completion.content[0] as any)?.text) ??
-    "";
+  const firstBlock = completion.content?.[0];
+  const text = firstBlock && 'text' in firstBlock ? firstBlock.text : '';
 
-  // 6) Return response bundle for UI
+  // 7) Return response bundle for UI
   return {
     otieResponse: text,
     mode,

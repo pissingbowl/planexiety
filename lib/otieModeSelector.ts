@@ -1,4 +1,4 @@
-import { OTIE_MODES } from "./otieModes";
+import { OTIE_MODES, type OtieMode } from "./otieModes";
 
 // Keep types loose so this works with your existing state + flight objects.
 type Trend = "rising" | "falling" | "stable" | "unknown" | undefined;
@@ -33,7 +33,7 @@ export function selectOTIEMode(
   anxietyLevel: number,
   state: UserStateLike,
   flight: FlightContextLike
-): OTIE_MODES {
+): OtieMode {
   const trend = state.trend;
   const spikes = state.spikesInRow ?? 0;
   const phase = flight.phase;
@@ -49,27 +49,19 @@ export function selectOTIEMode(
     return OTIE_MODES.FEAR_SPIKE;
   }
 
-  // 3. Phase-specific heightened modes
-  const isTakeoffPhase = phase === "takeoff" || phase === "climb";
-  const isLandingPhase =
-    phase === "descent" || phase === "approach" || phase === "landing";
-
-  if (isTakeoffPhase && anxietyLevel >= 5) {
-    return OTIE_MODES.TAKEOFF_SPIKE;
-  }
-
-  if (isLandingPhase && anxietyLevel >= 5) {
-    return OTIE_MODES.LANDING_ANTICIPATION;
-  }
-
-  // 4. Repeated spikes → grounding
-  if (spikes >= 3 || (trend === "rising" && anxietyLevel >= 6)) {
-    return OTIE_MODES.GROUNDING;
-  }
-
-  // 5. Mild turbulence + moderate anxiety → turbulence support
+  // 3. Mild turbulence + moderate anxiety → turbulence support
   if (turbulence === "light" && anxietyLevel >= 5) {
     return OTIE_MODES.TURBULENCE_SUPPORT;
+  }
+
+  // 4. Rising anxiety or repeated spikes → calm reframe
+  if (spikes >= 3 || (trend === "rising" && anxietyLevel >= 6)) {
+    return OTIE_MODES.CALM_REFRAME;
+  }
+
+  // 5. Moderate anxiety → calm reframe
+  if (anxietyLevel >= 5) {
+    return OTIE_MODES.CALM_REFRAME;
   }
 
   // 6. Default

@@ -38,7 +38,8 @@ Current anxiety (0-10): ${anxietyLevel}`,
     ],
   });
 
-  const raw = completion.content?.[0]?.text?.trim().toUpperCase() || '';
+  const firstBlock = completion.content?.[0];
+  const raw = (firstBlock && 'text' in firstBlock ? firstBlock.text : '').trim().toUpperCase();
 
   const allowed: FearCategory[] = [
     'CRASHING',
@@ -137,7 +138,8 @@ export async function POST(request: NextRequest) {
       ],
     });
 
-    const text = completion.content?.[0]?.text ?? '';
+    const firstBlock = completion.content?.[0];
+    const text = firstBlock && 'text' in firstBlock ? firstBlock.text : '';
 
     return NextResponse.json({
       ok: true,

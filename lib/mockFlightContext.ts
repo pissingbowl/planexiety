@@ -1,8 +1,8 @@
 export function getMockFlightContext() {
   return {
-    phase: "CRUISE",
+    phase: "cruise" as const,
     altitude: 36000,
-    turbulence: "light",
+    turbulence: "light" as const,
     weatherAhead: "clear",
   };
 }

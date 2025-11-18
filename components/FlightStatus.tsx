@@ -216,7 +216,7 @@ export default function FlightStatus() {
   const [progress, setProgress] = useState(12); // start somewhere early
   const [nerdOpen, setNerdOpen] = useState(false);
   const [segmentIndex, setSegmentIndex] = useState(1); // start at mid-cruise
-  const [openAccordion, setOpenAccordion] = useState<string | null>('MAP'); // MAP open by default
+  const [openAccordion, setOpenAccordion] = useState<string | null>(null); // No default open accordion
 
   // Simulate the flight progressing over time
   useEffect(() => {
@@ -323,19 +323,25 @@ export default function FlightStatus() {
           </div>
         </div>
 
-        {/* Accordion sections */}
-        <div className="mt-6 space-y-3">
-          {/* MAP */}
-          <AccordionSection
-            title="MAP"
-            subtitle="Live flights across the USA. Click any aircraft for details."
-            isOpen={openAccordion === 'MAP'}
-            onToggle={() => setOpenAccordion(openAccordion === 'MAP' ? null : 'MAP')}
-          >
-            <div onMouseDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
-              <LiveFlightMap />
+        {/* MAP - Always visible */}
+        <div className="mt-6 rounded-2xl border border-sky-900/60 bg-slate-950/60 overflow-hidden">
+          <div className="px-4 py-3 md:px-5 md:py-4">
+            <div className="text-left">
+              <div className="text-xs font-semibold tracking-[0.18em] uppercase text-sky-400">
+                MAP
+              </div>
+              <div className="mt-1 text-xs text-slate-300/80">
+                Live flights across the USA. Click any aircraft for details.
+              </div>
             </div>
-          </AccordionSection>
+          </div>
+          <div className="border-t border-sky-900/60 px-4 py-4 md:px-5 md:py-5 text-sm text-slate-100 space-y-3">
+            <LiveFlightMap />
+          </div>
+        </div>
+
+        {/* Accordion sections */}
+        <div className="mt-3 space-y-3">
 
           {/* WEATHER */}
           <AccordionSection

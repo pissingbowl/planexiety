@@ -1,8 +1,8 @@
-# PlaneXiety / OTIE
+# OTIE
 
 ## Overview
 
-PlaneXiety is an in-flight companion app designed to help people with fear of flying. It features OTIE (Optimal Timing Intelligence Engine), an AI-powered emotional support system that provides real-time guidance, aviation explanations, and anxiety management tools during flights.
+OTIE (Optimal Timing Intelligence Engine) is an in-flight companion app designed to help people with fear of flying. It's an AI-powered emotional support system that provides real-time guidance, aviation explanations, and anxiety management tools during flights.
 
 The application tracks user anxiety levels, flight context, and provides personalized interventions based on emotional state and flight phase using a lightweight state tracking system and intelligent mode selection.
 

@@ -1,4 +1,4 @@
-# PlaneXiety/OTIE Build Status
+# OTIE Build Status
 Last updated: 2024-11-16
 
 ## ✅ What's Working

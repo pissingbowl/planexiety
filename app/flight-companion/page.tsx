@@ -8,10 +8,10 @@ export default function Home() {
       <div className="w-full max-w-4xl space-y-8">
         {/* Hero / intro */}
         <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">PlaneXiety</h1>
+          <h1 className="text-4xl font-bold mb-4">OTIE</h1>
           <p className="text-center max-w-xl mx-auto text-lg text-gray-300">
             Your in-flight companion. Real-time updates. Emotional support.
-            Guidance from OTIE. You&apos;re not flying alone anymore.
+            You&apos;re not flying alone anymore.
           </p>
         </div>
 

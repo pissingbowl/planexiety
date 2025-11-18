@@ -1,37 +1,28 @@
 @import "tailwindcss";
 
 :root {
-  /* Primary - Deep space/aviation night */
-  --otie-space: #0A0E27;        /* Main background - deep aviation blue-black */
-  --otie-cosmic: #151B3D;        /* Secondary backgrounds - instrument panel blue */
-  --otie-horizon: #1E2749;       /* Elevated surfaces - pre-dawn sky */
-  
-  /* Accent - Aviation instruments */
-  --otie-altitude: #00D4FF;      /* Primary action - artificial horizon blue */
-  --otie-beacon: #FF6B35;        /* Warnings/important - beacon orange */
-  --otie-runway: #4ECDC4;        /* Success states - runway lighting teal */
-  
-  /* Functional */
-  --otie-text-primary: #FFFFFF;   /* Main text */
-  --otie-text-secondary: #94A3B8; /* Subdued text - like dimmed cockpit labels */
-  --otie-text-tertiary: #64748B;  /* Minimal text */
-  
-  /* Derivatives/Predictions */
-  --otie-derivative-rising: #FFB700;  /* Anxiety climbing - amber warning */
-  --otie-derivative-falling: #00FF88; /* Anxiety reducing - green recovery */
-  --otie-derivative-neutral: #00D4FF; /* Stable state */
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
 @theme inline {
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-  --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
 }
 
 body {
-  background: linear-gradient(135deg, var(--otie-space) 0%, var(--otie-cosmic) 100%);
-  color: var(--otie-text-primary);
-  font-family: var(--font-sans);
-  min-height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 @keyframes float {

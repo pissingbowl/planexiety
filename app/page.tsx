@@ -1,54 +1,145 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import FlightStatus from '../components/FlightStatus';
 import ChatInterface from "../components/ChatInterface";
+import ParticleField from '../components/ParticleField';
+import FlightProgressBar from '../components/FlightProgressBar';
+import DerivativeGauge from '../components/DerivativeGauge';
 
 export default function Home() {
+  const [anxietyLevel, setAnxietyLevel] = useState(50);
+  const [previousAnxietyLevel, setPreviousAnxietyLevel] = useState(50);
+  const [currentPhase, setCurrentPhase] = useState('Taxi');
+
+  // Simulate anxiety changes for demo
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPreviousAnxietyLevel(anxietyLevel);
+      setAnxietyLevel(prev => {
+        const change = (Math.random() - 0.5) * 20;
+        return Math.max(0, Math.min(100, prev + change));
+      });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [anxietyLevel]);
+
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gradient-to-b from-gray-900 via-gray-950 to-blue-950 text-white py-8 px-4 relative overflow-hidden">
-      {/* OTIE Bubble Effect - creates visibility outline */}
-      <div 
-        className="fixed bottom-16 right-6 w-80 h-80 opacity-[0.15] pointer-events-none float-animation"
-        style={{
-          background: 'radial-gradient(circle at center, transparent 30%, rgba(147, 197, 253, 0.2) 50%, transparent 70%)',
-          filter: 'blur(20px)',
-        }}
-      />
+    <main 
+      style={{
+        background: 'linear-gradient(135deg, var(--otie-space) 0%, var(--otie-cosmic) 100%)',
+        minHeight: '100vh',
+        position: 'relative',
+        overflow: 'hidden'
+      }}
+    >
+      {/* Animated star field */}
+      <ParticleField opacity={0.3} />
       
-      {/* OTIE Background Character - Slightly more present with lifelike animation */}
+      {/* OTIE Background Character with new styling */}
       <div 
-        className="fixed bottom-20 right-10 w-72 h-72 opacity-[0.12] pointer-events-none float-animation"
+        className="fixed bottom-20 right-10 w-72 h-72 opacity-[0.15] pointer-events-none float-animation"
         style={{
           backgroundImage: 'url("/otie-character.png")',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',
-          filter: 'blur(0.3px)',
+          filter: 'blur(0.3px) drop-shadow(0 0 30px rgba(0, 212, 255, 0.4))',
           transformOrigin: 'center center',
         }}
       />
       
-      {/* Soft outer glow behind OTIE */}
+      {/* Main content container */}
       <div 
-        className="fixed bottom-20 right-10 w-96 h-96 opacity-[0.04] pointer-events-none float-animation"
-        style={{
-          background: 'radial-gradient(circle, rgba(147, 197, 253, 0.4) 0%, transparent 70%)',
-          filter: 'blur(50px)',
-        }}
-      />
-      
-      <div className="w-full max-w-4xl space-y-8 relative z-10">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">OTIE</h1>
-          <p className="text-center max-w-xl mx-auto text-lg text-gray-300">
-            Your in-flight companion. Real-time updates. Emotional support.
-            You're not flying alone anymore.
-          </p>
+        className="relative z-10 flex flex-col items-center px-4 py-8"
+        style={{ minHeight: '100vh' }}
+      >
+        <div className="w-full max-w-6xl space-y-8">
+          {/* Header */}
+          <div className="text-center">
+            <h1 
+              style={{
+                fontSize: '48px',
+                fontWeight: '700',
+                letterSpacing: '4px',
+                textTransform: 'uppercase',
+                background: 'linear-gradient(135deg, var(--otie-text-primary), var(--otie-altitude))',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                marginBottom: '16px',
+                textShadow: '0 0 40px rgba(0, 212, 255, 0.5)'
+              }}
+            >
+              OTIE
+            </h1>
+            <p style={{
+              color: 'var(--otie-text-secondary)',
+              fontSize: '14px',
+              fontFamily: 'var(--font-mono)',
+              letterSpacing: '1px',
+              textTransform: 'uppercase'
+            }}>
+              Optimal Timing Intelligence Engine • Flight Anxiety Support System
+            </p>
+          </div>
+
+          {/* Top instrumentation row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Flight Progress */}
+            <div className="lg:col-span-2">
+              <FlightProgressBar 
+                currentPhase={currentPhase} 
+                progress={12}
+              />
+            </div>
+            
+            {/* Derivative Gauge */}
+            <div 
+              style={{
+                background: 'rgba(30, 39, 73, 0.3)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(0, 212, 255, 0.2)',
+                borderRadius: '12px',
+                padding: '20px',
+                display: 'flex',
+                justifyContent: 'center'
+              }}
+            >
+              <DerivativeGauge 
+                anxietyLevel={anxietyLevel}
+                previousLevel={previousAnxietyLevel}
+              />
+            </div>
+          </div>
+
+          {/* Chat Interface with new card styling */}
+          <div 
+            style={{
+              background: 'rgba(30, 39, 73, 0.7)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid var(--otie-altitude)',
+              borderRadius: '8px',
+              padding: '20px',
+              boxShadow: '0 4px 20px rgba(0, 212, 255, 0.1)',
+            }}
+          >
+            <ChatInterface />
+          </div>
+
+          {/* Flight Status with new card styling */}
+          <div 
+            style={{
+              background: 'rgba(30, 39, 73, 0.7)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid var(--otie-altitude)',
+              borderRadius: '8px',
+              padding: '20px',
+              boxShadow: '0 4px 20px rgba(0, 212, 255, 0.1)',
+            }}
+          >
+            <FlightStatus />
+          </div>
         </div>
-
-        {/* Chat Interface */}
-        <ChatInterface />
-
-        {/* Flight Status */}
-        <FlightStatus />
       </div>
     </main>
   );

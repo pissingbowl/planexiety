@@ -31,17 +31,17 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
     null
   );
 
-  // Helper: pick a random unseen event; if exhausted, allow repeats from full list
+  // Helper: pick a random unseen event; return null if all have been seen
   const pickRandomEvent = (
     excludeIds: Set<string>
   ): FlightPhaseEvent | null => {
     if (!allEventsForPhase.length) return null;
 
     const unseen = allEventsForPhase.filter(e => !excludeIds.has(e.id));
-    const pool = unseen.length > 0 ? unseen : allEventsForPhase;
+    if (unseen.length === 0) return null;
 
-    const idx = Math.floor(Math.random() * pool.length);
-    return pool[idx] ?? null;
+    const idx = Math.floor(Math.random() * unseen.length);
+    return unseen[idx] ?? null;
   };
 
   // Initialize / reset when phase changes

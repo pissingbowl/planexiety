@@ -113,18 +113,11 @@ export default function ChatInterface() {
             </p>
           </div>
 
-          {(lastMode || lastPhase) && (
+          {lastPhase && (
             <div className="flex flex-col items-end gap-1 text-right">
-              {lastMode && (
-                <span className="inline-flex items-center rounded-full bg-blue-900/40 border border-blue-500/60 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-blue-100">
-                  Mode: {lastMode}
-                </span>
-              )}
-              {lastPhase && (
-                <span className="inline-flex items-center rounded-full bg-gray-900/60 border border-gray-700 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-gray-300">
-                  Phase: {lastPhase}
-                </span>
-              )}
+              <span className="inline-flex items-center rounded-full bg-gray-900/60 border border-gray-700 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-gray-300">
+                Phase: {lastPhase}
+              </span>
             </div>
           )}
         </div>

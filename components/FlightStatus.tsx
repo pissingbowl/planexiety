@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { FlightPhaseWeirdThings } from "./FlightPhaseWeirdThings";
+import { AccordionSection } from "./AccordionSection";
 import type { FlightPhase } from "@/lib/flightPhaseEvents";
 
 // --- Tiny inline flight map ---
@@ -320,62 +321,88 @@ export default function FlightStatus() {
           </div>
         </div>
 
-        {/* What the pilots are doing */}
-        <div className="mt-6 bg-gray-950/70 border border-gray-800 rounded-2xl p-4">
-          <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mb-1">
-            What the pilots are doing right now
-          </p>
-          <p className="text-sm font-medium mb-2">{pilotActivity.title}</p>
+        {/* Accordion sections */}
+        <div className="mt-6 space-y-3">
+          {/* MAP */}
+          <AccordionSection
+            title="MAP"
+            subtitle="A quick glance at where you are along the route."
+          >
+            <FlightMap from={from} to={to} progressPercent={progress} />
+          </AccordionSection>
 
-          <ul className="space-y-1.5 text-sm text-gray-300">
-            {pilotActivity.lines.map((line, idx) => (
-              <li key={idx} className="flex gap-2">
-                <span className="mt-1 h-1 w-1 rounded-full bg-gray-500" />
-                <span>{line}</span>
-              </li>
-            ))}
-          </ul>
+          {/* WEATHER */}
+          <AccordionSection
+            title="WEATHER"
+            subtitle="Coming soon: real-time weather at origin, en route, and destination."
+          >
+            <p className="text-slate-300">
+              Weather intelligence will live here — conditions at your departure and arrival,
+              plus what the air is doing in between.
+            </p>
+          </AccordionSection>
 
-          {/* Aircraft strip */}
-          <div className="mt-4 border-t border-gray-800 pt-3">
-            <div className="flex flex-wrap gap-2 text-[11px] text-gray-300">
-              <span className="px-2 py-1 rounded-full bg-gray-900/80 border border-gray-700 font-mono">
-                Tail {mockAircraft.tailNumber}
-              </span>
-              <span className="px-2 py-1 rounded-full bg-gray-900/80 border border-gray-700">
-                {mockAircraft.type}
-              </span>
-              <span className="px-2 py-1 rounded-full bg-gray-900/80 border border-gray-700">
-                In service since {mockAircraft.yearBuilt}
-              </span>
-              <span className="px-2 py-1 rounded-full bg-gray-900/80 border border-gray-700">
-                ~{mockAircraft.totalHours.toLocaleString()} flight hours
-              </span>
-              <span className="px-2 py-1 rounded-full bg-gray-900/80 border border-gray-700">
-                {mockAircraft.cycles.toLocaleString()} takeoffs & landings
-              </span>
+          {/* WHAT'S AROUND ME? */}
+          <AccordionSection
+            title="WHAT'S AROUND ME?"
+            subtitle="A sense of what you're flying over right now."
+          >
+            <p className="text-slate-300">
+              This will eventually show nearby cities, terrain, and other reference points
+              so your brain has something concrete to picture instead of "empty sky".
+            </p>
+          </AccordionSection>
+
+          {/* TURBULENCE ANALYSIS */}
+          <AccordionSection
+            title="TURBULENCE ANALYSIS"
+            subtitle="Why the bumps feel big, and why the jet is built for far more."
+          >
+            <p className="text-slate-300">
+              This section will summarize current and forecast turbulence along the route,
+              and translate it into plain language ("light chop", "totally routine for this area", etc).
+            </p>
+          </AccordionSection>
+
+          {/* THINGS THAT FEEL WEIRD BUT ARE TOTALLY NORMAL */}
+          <AccordionSection
+            title="THINGS THAT FEEL WEIRD BUT ARE TOTALLY NORMAL"
+            subtitle="Tap anything that sounds familiar to see what it really is, why it exists, and what covers you if that part misbehaves."
+          >
+            <FlightPhaseWeirdThings phase={normalizedPhase} />
+          </AccordionSection>
+
+          {/* WHAT THE PILOTS ARE DOING RIGHT NOW */}
+          <AccordionSection
+            title="WHAT THE PILOTS ARE DOING RIGHT NOW"
+            subtitle="A grounded view of their job in this phase of flight."
+          >
+            <div className="grid gap-6 md:grid-cols-2">
+              <div>
+                <div className="text-xs font-semibold tracking-[0.16em] uppercase text-sky-400 mb-2">
+                  What they're actually doing
+                </div>
+                <ul className="space-y-2 text-slate-200 text-sm">
+                  <li>• Monitoring the autopilot and flight path, not hand-flying the whole time.</li>
+                  <li>• Talking with ATC, watching the weather ahead, and planning the next phase.</li>
+                  <li>• Cross-checking instruments and system messages, most of which are boringly normal.</li>
+                  <li>• Staying ahead of the airplane with checklists and briefings instead of reacting last-second.</li>
+                </ul>
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold tracking-[0.16em] uppercase text-sky-400 mb-2">
+                  What a frightened mind imagines
+                </div>
+                <ul className="space-y-2 text-slate-300/90 text-sm">
+                  <li>• White-knuckle "steering" the jet every second to keep it from falling.</li>
+                  <li>• Fighting the turbulence like it's a storm in a movie.</li>
+                  <li>• Hoping nothing breaks because there's no backup plan.</li>
+                  <li>• Being surprised by every sound or motion instead of expecting them.</li>
+                </ul>
+              </div>
             </div>
-
-            <p className="mt-2 text-[11px] text-gray-400">
-              {mockAircraft.funFact}
-            </p>
-            <p className="mt-1 text-[11px] text-gray-500">
-              Design note: {mockAircraft.designNote}
-            </p>
-          </div>
-        </div>
-
-        {/* Weird but normal sensations */}
-        <div className="mt-8 space-y-2">
-          <h3 className="text-xs font-semibold tracking-[0.18em] text-sky-300 uppercase">
-            Things that feel weird but are totally normal
-          </h3>
-          <p className="text-[11px] text-slate-400">
-            Tap anything that sounds familiar. You&apos;ll see what it really is,
-            why it exists, and what covers you if that part misbehaves.
-          </p>
-
-          <FlightPhaseWeirdThings phase={normalizedPhase} />
+          </AccordionSection>
         </div>
 
         {/* Nerd panel */}

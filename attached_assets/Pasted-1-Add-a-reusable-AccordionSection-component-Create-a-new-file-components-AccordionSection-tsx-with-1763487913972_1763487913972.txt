@@ -1,0 +1,160 @@
+1) Add a reusable AccordionSection component
+Create a new file: components/AccordionSection.tsx with this exact code:
+"use client";
+
+import { useState, ReactNode } from "react";
+
+interface AccordionSectionProps {
+  title: string;
+  subtitle?: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}
+
+export function AccordionSection({
+  title,
+  subtitle,
+  defaultOpen = false,
+  children,
+}: AccordionSectionProps) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <section className="rounded-2xl border border-sky-900/60 bg-slate-950/60 overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 md:px-5 md:py-4"
+      >
+        <div className="text-left">
+          <div className="text-xs font-semibold tracking-[0.18em] uppercase text-sky-400">
+            {title}
+          </div>
+          {subtitle && (
+            <div className="mt-1 text-xs text-slate-300/80">
+              {subtitle}
+            </div>
+          )}
+        </div>
+        <div className="ml-4 flex h-7 w-7 items-center justify-center rounded-full border border-sky-700/70 bg-sky-900/20 text-sky-200 text-xs">
+          {open ? "−" : "+"}
+        </div>
+      </button>
+
+      {open && (
+        <div className="border-t border-sky-900/60 px-4 py-4 md:px-5 md:py-5 text-sm text-slate-100 space-y-3">
+          {children}
+        </div>
+      )}
+    </section>
+  );
+}
+2) Wrap the flight tools in accordions on the main flight card
+Open components/FlightStatus.tsx and:
+At the top, add this import:
+import { AccordionSection } from "./AccordionSection";
+Inside the main component’s JSX, keep the top “Current flight” card as-is (flight number, route, phase tabs, progress bar).
+Below the progress bar / phase tabs, re-organize everything into these accordions in this order:
+(a) MAP
+Wrap the mini map section in:
+<AccordionSection
+  title="MAP"
+  subtitle="A quick glance at where you are along the route."
+>
+  {/* existing map / route / progress content goes here */}
+  {/* For example, if you have a FlightMap component, render it here: */}
+  {/* <FlightMap flight={flight} /> */}
+</AccordionSection>
+If there isn’t a dedicated FlightMap component yet, just keep whatever inline “map/progress” UI you already had inside this accordion body.
+(b) WEATHER
+Add a placeholder accordion for now:
+<AccordionSection
+  title="WEATHER"
+  subtitle="Coming soon: real-time weather at origin, en route, and destination."
+>
+  <p className="text-slate-300">
+    Weather intelligence will live here — conditions at your departure and arrival,
+    plus what the air is doing in between.
+  </p>
+</AccordionSection>
+(c) WHAT’S AROUND ME?
+Another placeholder:
+<AccordionSection
+  title="WHAT’S AROUND ME?"
+  subtitle="A sense of what you’re flying over right now."
+>
+  <p className="text-slate-300">
+    This will eventually show nearby cities, terrain, and other reference points
+    so your brain has something concrete to picture instead of “empty sky”.
+  </p>
+</AccordionSection>
+(d) TURBULENCE ANALYSIS
+Placeholder for now:
+<AccordionSection
+  title="TURBULENCE ANALYSIS"
+  subtitle="Why the bumps feel big, and why the jet is built for far more."
+>
+  <p className="text-slate-300">
+    This section will summarize current and forecast turbulence along the route,
+    and translate it into plain language (“light chop”, “totally routine for this area”, etc).
+  </p>
+</AccordionSection>
+(e) THINGS THAT FEEL WEIRD BUT ARE TOTALLY NORMAL
+Take the existing “Things that feel weird but are totally normal” block and wrap it in an accordion like this. Use the current phase variable and FlightPhaseWeirdThings component:
+<AccordionSection
+  title="THINGS THAT FEEL WEIRD BUT ARE TOTALLY NORMAL"
+  subtitle="Tap anything that sounds familiar to see what it really is, why it exists, and what covers you if that part misbehaves."
+>
+  <FlightPhaseWeirdThings phase={phase} />
+</AccordionSection>
+(The internal headings in the explanation panel should already be
+“WHAT YOU’RE NOTICING / WHY THIS EXISTS / IF THIS PART MISBEHAVED”
+from earlier work. Don’t duplicate those headings outside the component.)
+(f) WHAT THE PILOTS ARE DOING RIGHT NOW
+Wrap the existing “What the pilots are doing right now” card in another accordion and reshape its content to contrast reality vs anxious imagination:
+<AccordionSection
+  title="WHAT THE PILOTS ARE DOING RIGHT NOW"
+  subtitle="A grounded view of their job in this phase of flight."
+>
+  <div className="grid gap-6 md:grid-cols-2">
+    <div>
+      <div className="text-xs font-semibold tracking-[0.16em] uppercase text-sky-400 mb-2">
+        What they’re actually doing
+      </div>
+      <ul className="space-y-2 text-slate-200 text-sm">
+        <li>• Monitoring the autopilot and flight path, not hand-flying the whole time.</li>
+        <li>• Talking with ATC, watching the weather ahead, and planning the next phase.</li>
+        <li>• Cross-checking instruments and system messages, most of which are boringly normal.</li>
+        <li>• Staying ahead of the airplane with checklists and briefings instead of reacting last-second.</li>
+      </ul>
+    </div>
+
+    <div>
+      <div className="text-xs font-semibold tracking-[0.16em] uppercase text-sky-400 mb-2">
+        What a frightened mind imagines
+      </div>
+      <ul className="space-y-2 text-slate-300/90 text-sm">
+        <li>• White-knuckle “steering” the jet every second to keep it from falling.</li>
+        <li>• Fighting the turbulence like it’s a storm in a movie.</li>
+        <li>• Hoping nothing breaks because there’s no backup plan.</li>
+        <li>• Being surprised by every sound or motion instead of expecting them.</li>
+      </ul>
+    </div>
+  </div>
+</AccordionSection>
+Make sure these six <AccordionSection> blocks sit inside the main FlightStatus card, underneath the basic flight summary/progress UI.
+3) Remove the visible “MODE: GENERAL_REASSURANCE” label from the user UI
+Open components/ChatInterface.tsx (or whichever component renders the “Talk to OTIE” card).
+Find any JSX that renders the current OTIE mode to the user, e.g. something like:
+<div className="text-xs uppercase ...">
+  MODE: {mode}
+</div>
+or any text that looks like “MODE: GENERAL_REASSURANCE” / “MODE: TURBULENCE_SUPPORT”.
+Delete that UI block entirely, or comment it out. The mode value can still exist in state and be passed to the debug panel, but it should no longer be visible in the main chat card that regular users see.
+Do not remove any mode information from the OtieDebugPanel; only hide it from the normal chat interface.
+After making these changes, run the dev server again and confirm:
+On the main page, beneath the current flight info, I see six collapsed sections:
+MAP, WEATHER, WHAT’S AROUND ME?, TURBULENCE ANALYSIS,
+THINGS THAT FEEL WEIRD BUT ARE TOTALLY NORMAL, and WHAT THE PILOTS ARE DOING RIGHT NOW.
+Each section expands/collapses when clicked.
+The “Talk to OTIE” card no longer shows a visible “MODE: …” line to the user.

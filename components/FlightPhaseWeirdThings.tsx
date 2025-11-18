@@ -141,7 +141,10 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
   }
 
   return (
-    <div className="mt-4 space-y-4">
+    <div className="mt-4 space-y-4 bg-gray-900/80 border border-gray-800 rounded-xl p-4">
+      <h3 className="font-bold text-lg mb-2 text-white">
+        Things that feel weird but are totally normal
+      </h3>
       {/* Clickable list */}
       <div className="flex flex-wrap gap-2">
         {visibleItems.map(item =>

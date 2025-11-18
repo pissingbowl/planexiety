@@ -172,10 +172,7 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
       {selectedEvent && (
         <div className="rounded-xl border border-sky-500/30 bg-slate-900/70 p-3 text-xs leading-relaxed space-y-2">
           {/* Navigation controls */}
-          <div className="flex items-center justify-between border-b border-sky-500/20 pb-2 mb-2">
-            <div className="text-[10px] text-sky-400">
-              {currentIndex + 1} of {allEventsForPhase.length}
-            </div>
+          <div className="flex items-center justify-end border-b border-sky-500/20 pb-2 mb-2">
             <div className="flex items-center gap-1">
               <button
                 onClick={handlePrevious}

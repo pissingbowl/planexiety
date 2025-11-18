@@ -43,11 +43,11 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Chat Interface */}
-        <ChatInterface />
-
         {/* Flight Status */}
         <FlightStatus />
+
+        {/* Chat Interface */}
+        <ChatInterface />
       </div>
     </main>
   );

@@ -1,29 +1,69 @@
+// components/FlightStatus.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { FlightPhaseWeirdThings } from "./FlightPhaseWeirdThings";
+import type { FlightPhase } from "@/lib/flightPhaseEvents";
 
-const mockFlight = {
-  airline: "United",
-  flightNumber: "UA1234",
-  from: "ORD",
-  to: "LAX",
-  phase: "Cruise",
-  progressPercent: 42, // percent of flight completed
-  timeRemaining: "2h 14m",
-  minutesSinceTakeoff: 37,
+// --- Tiny inline flight map ---
+
+interface FlightMapProps {
+  from: string;
+  to: string;
+  progressPercent: number; // 0–100
+}
+
+function FlightMap({ from, to, progressPercent }: FlightMapProps) {
+  const clamped = Math.min(100, Math.max(0, progressPercent));
+
+  return (
+    <div className="mb-4">
+      <div className="flex justify-between text-xs text-gray-400 mb-1">
+        <span className="font-mono text-gray-200">{from}</span>
+        <span className="font-mono text-gray-200">{to}</span>
+      </div>
+
+      <div className="relative h-10 rounded-xl bg-slate-950/80 border border-slate-800 overflow-hidden">
+        {/* route line */}
+        <div className="absolute left-4 right-4 top-1/2 h-px bg-slate-600/70" />
+
+        {/* plane icon */}
+        <div
+          className="absolute top-1/2 -translate-y-1/2 transition-all duration-500 ease-out"
+          style={{
+            left: `calc(4% + ${clamped} * 0.92%)`, // slight padding on each side
+          }}
+        >
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-[10px] text-sky-300">✈︎</span>
+            <span className="text-[9px] text-slate-400 font-mono">
+              {clamped.toFixed(0)}%
+            </span>
+          </div>
+        </div>
+
+        {/* origin + destination dots */}
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.7)]" />
+        <div className="absolute right-4 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.7)]" />
+      </div>
+    </div>
+  );
+}
+
+// --- Static aircraft info (for now) ---
+
+const mockAircraft = {
+  tailNumber: "N78421",
+  type: "Boeing 737-800",
+  yearBuilt: 2018,
+  totalHours: 12437,
+  cycles: 4621,
+  funFact:
+    "This airframe has flown ORD–LAX over 300 times without a serious incident.",
+  designNote: "Twin-engine jet designed to fly safely on one engine if needed.",
 };
 
-const phases = [
-  "Boarding",
-  "Taxi",
-  "Takeoff",
-  "Climb",
-  "Cruise",
-  "Descent",
-  "Landing",
-];
-
-// Nerd slider segments – mocked for now
+// Nerd segments (unchanged)
 const nerdSegments = [
   {
     id: 0,
@@ -71,21 +111,51 @@ const nerdSegments = [
   },
 ];
 
-// Mock aircraft / tail info – later this will come from real data
-const mockAircraft = {
-  tailNumber: "N78421",
-  type: "Boeing 737-800",
-  yearBuilt: 2018,
-  totalHours: 12437,
-  cycles: 4621,
-  funFact:
-    "This airframe has flown ORD–LAX over 300 times without a serious incident.",
-  designNote: "Twin-engine jet designed to fly safely on one engine if needed.",
-};
+// --- Helpers: phase + pilot activity + time math ---
 
-// A little helper to describe what the pilots are doing
-function getPilotActivity(phase: string, minutesSinceTakeoff: number) {
-  const minutesHandsOff = Math.max(minutesSinceTakeoff - 5, 10);
+function phaseFromProgress(progress: number): string {
+  if (progress < 5) return "Boarding";
+  if (progress < 15) return "Taxi";
+  if (progress < 25) return "Takeoff";
+  if (progress < 40) return "Climb";
+  if (progress < 80) return "Cruise";
+  if (progress < 90) return "Descent";
+  return "Landing";
+}
+
+function mapPhaseToFlightPhase(phase: string): FlightPhase {
+  const p = phase.toLowerCase();
+  if (p === "boarding") return "gate";
+  if (p === "taxi") return "taxi";
+  if (p === "takeoff") return "takeoff";
+  if (p === "climb") return "climb";
+  if (p === "cruise") return "cruise";
+  if (p === "descent") return "descent";
+  if (p === "landing") return "landing";
+  return "cruise";
+}
+
+function formatTimeRemaining(totalMinutes: number, progress: number): string {
+  const clamped = Math.min(100, Math.max(0, progress));
+  const elapsed = (clamped / 100) * totalMinutes;
+  const remaining = Math.max(0, totalMinutes - elapsed);
+  const hours = Math.floor(remaining / 60);
+  const minutes = Math.round(remaining % 60);
+  if (hours <= 0) return `${minutes}m`;
+  return `${hours}h ${minutes}m`;
+}
+
+function minutesSinceTakeoff(progress: number, totalMinutes: number): number {
+  // assume takeoff around 15% of progress
+  if (progress <= 15) return 0;
+  const postTakeoffProgress = progress - 15;
+  const usableSpan = 100 - 15;
+  const frac = postTakeoffProgress / usableSpan;
+  return Math.max(0, Math.round(frac * totalMinutes));
+}
+
+function getPilotActivity(phase: string, minutes: number) {
+  const minutesHandsOff = Math.max(minutes - 5, 10);
 
   if (phase === "Climb") {
     return {
@@ -120,7 +190,6 @@ function getPilotActivity(phase: string, minutesSinceTakeoff: number) {
     };
   }
 
-  // Generic fallback
   return {
     title: "The pilots aren’t “driving” like a car – they’re supervising a system.",
     lines: [
@@ -131,34 +200,54 @@ function getPilotActivity(phase: string, minutesSinceTakeoff: number) {
   };
 }
 
-export default function FlightStatus() {
-  const progress = mockFlight.progressPercent;
+// --- Component ---
 
+export default function FlightStatus() {
+  // You can tweak these to simulate different legs
+  const totalFlightMinutes = 180; // 3-hour-ish leg
+  const from = "ORD";
+  const to = "LAX";
+  const airline = "United";
+  const flightNumber = "UA1234";
+  const mockArrivalLocal = "3:42 PM";
+
+  const [progress, setProgress] = useState(12); // start somewhere early
   const [nerdOpen, setNerdOpen] = useState(false);
   const [segmentIndex, setSegmentIndex] = useState(1); // start at mid-cruise
 
+  // Simulate the flight progressing over time
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) return 100;
+        return prev + 1; // 1% per tick
+      });
+    }, 800); // ~0.8s per 1% → ~80s full flight; tweak as desired
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const phase = phaseFromProgress(progress);
+  const normalizedPhase: FlightPhase = mapPhaseToFlightPhase(phase);
+  const timeRemaining = formatTimeRemaining(totalFlightMinutes, progress);
+  const minsSinceTO = minutesSinceTakeoff(progress, totalFlightMinutes);
+  const pilotActivity = getPilotActivity(phase, minsSinceTO);
   const currentSegment = nerdSegments[segmentIndex];
-  const pilotActivity = getPilotActivity(
-    mockFlight.phase,
-    mockFlight.minutesSinceTakeoff
-  );
 
   return (
     <section className="mt-10 w-full max-w-2xl mx-auto text-white">
-      {/* Card container */}
       <div className="bg-gray-900/80 border border-gray-700 rounded-2xl p-6 shadow-xl backdrop-blur">
-        {/* Header row */}
+        {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-gray-400">
               Current Flight
             </p>
             <h2 className="text-xl font-semibold mt-1">
-              {mockFlight.airline}{" "}
-              <span className="font-mono">{mockFlight.flightNumber}</span>
+              {airline} <span className="font-mono">{flightNumber}</span>
             </h2>
             <p className="text-sm text-gray-400 mt-1">
-              {mockFlight.from} → {mockFlight.to}
+              {from} → {to}
             </p>
           </div>
 
@@ -166,23 +255,27 @@ export default function FlightStatus() {
             <p className="text-xs text-gray-400 uppercase tracking-[0.15em]">
               Phase
             </p>
-            <p className="text-sm font-medium">{mockFlight.phase}</p>
+            <p className="text-sm font-medium">{phase}</p>
             <p className="text-xs text-gray-400 mt-1">
               Time remaining:{" "}
               <span className="font-mono text-gray-100">
-                {mockFlight.timeRemaining}
+                {timeRemaining}
               </span>
             </p>
           </div>
         </div>
 
-        {/* Progress bar */}
+        {/* Flight map */}
+        <FlightMap from={from} to={to} progressPercent={progress} />
+
+        {/* Numeric progress bar */}
         <div className="mb-4">
           <div className="flex justify-between text-xs text-gray-400 mb-1">
             <span>Flight progress</span>
-            <span className="font-mono text-gray-200">{progress}%</span>
+            <span className="font-mono text-gray-200">
+              {progress.toFixed(0)}%
+            </span>
           </div>
-
           <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden">
             <div
               className="h-full bg-blue-500 transition-all duration-500"
@@ -194,36 +287,40 @@ export default function FlightStatus() {
         {/* Phase timeline */}
         <div className="mt-4">
           <div className="flex justify-between text-[10px] text-gray-400 uppercase tracking-[0.15em]">
-            {phases.map((phase) => {
-              const isCurrent = phase === mockFlight.phase;
-              return (
-                <span
-                  key={phase}
-                  className={
-                    "flex-1 text-center " +
-                    (isCurrent ? "text-blue-400 font-semibold" : "")
-                  }
-                >
-                  {phase}
-                </span>
-              );
-            })}
+            {["Boarding", "Taxi", "Takeoff", "Climb", "Cruise", "Descent", "Landing"].map(
+              p => {
+                const isCurrent = p === phase;
+                return (
+                  <span
+                    key={p}
+                    className={
+                      "flex-1 text-center " +
+                      (isCurrent ? "text-blue-400 font-semibold" : "")
+                    }
+                  >
+                    {p}
+                  </span>
+                );
+              }
+            )}
           </div>
         </div>
 
-        {/* Live status footer row */}
+        {/* Live status footer */}
         <div className="mt-6 flex items-center justify-between text-sm">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-gray-300">Live status (sample data)</span>
+            <span className="text-gray-300">Live status (simulated)</span>
           </div>
           <div className="text-right text-gray-400 text-xs">
             <p>Est. arrival (local)</p>
-            <p className="font-mono text-gray-100">{mockFlight.arrivalLocal}</p>
+            <p className="font-mono text-gray-100">
+              {mockArrivalLocal}
+            </p>
           </div>
         </div>
 
-        {/* -------- WHAT THE PILOTS ARE DOING -------- */}
+        {/* What the pilots are doing */}
         <div className="mt-6 bg-gray-950/70 border border-gray-800 rounded-2xl p-4">
           <p className="text-xs uppercase tracking-[0.2em] text-gray-400 mb-1">
             What the pilots are doing right now
@@ -239,7 +336,7 @@ export default function FlightStatus() {
             ))}
           </ul>
 
-          {/* Aircraft / tail info strip */}
+          {/* Aircraft strip */}
           <div className="mt-4 border-t border-gray-800 pt-3">
             <div className="flex flex-wrap gap-2 text-[11px] text-gray-300">
               <span className="px-2 py-1 rounded-full bg-gray-900/80 border border-gray-700 font-mono">
@@ -268,10 +365,23 @@ export default function FlightStatus() {
           </div>
         </div>
 
-        {/* -------- FOR THE NERDS -------- */}
+        {/* Weird but normal sensations */}
+        <div className="mt-8 space-y-2">
+          <h3 className="text-xs font-semibold tracking-[0.18em] text-sky-300 uppercase">
+            Things that feel weird but are totally normal
+          </h3>
+          <p className="text-[11px] text-slate-400">
+            Tap anything that sounds familiar. You&apos;ll see what it really is,
+            why it exists, and what covers you if that part misbehaves.
+          </p>
+
+          <FlightPhaseWeirdThings phase={normalizedPhase} />
+        </div>
+
+        {/* Nerd panel */}
         <button
           type="button"
-          onClick={() => setNerdOpen((open) => !open)}
+          onClick={() => setNerdOpen(open => !open)}
           className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/60 bg-blue-900/20 text-xs font-semibold uppercase tracking-[0.18em] text-blue-200 hover:bg-blue-900/40 transition-colors"
         >
           For the nerds
@@ -282,7 +392,6 @@ export default function FlightStatus() {
 
         {nerdOpen && (
           <div className="mt-5 border-t border-gray-800 pt-4">
-            {/* Slider header */}
             <div className="flex items-center justify-between mb-2">
               <div>
                 <p className="text-xs uppercase tracking-[0.18em] text-gray-400">
@@ -300,14 +409,13 @@ export default function FlightStatus() {
               </div>
             </div>
 
-            {/* Slider */}
             <input
               type="range"
               min={0}
               max={nerdSegments.length - 1}
               step={1}
               value={segmentIndex}
-              onChange={(e) => setSegmentIndex(Number(e.target.value))}
+              onChange={e => setSegmentIndex(Number(e.target.value))}
               className="w-full accent-blue-500"
             />
 
@@ -315,9 +423,8 @@ export default function FlightStatus() {
               {currentSegment.description}
             </p>
 
-            {/* VOR / fix cards */}
             <div className="mt-4 grid gap-3 sm:grid-cols-2 text-xs sm:text-sm">
-              {currentSegment.vorFixes.map((fix) => (
+              {currentSegment.vorFixes.map(fix => (
                 <div
                   key={fix.id}
                   className="bg-gray-900/80 border border-gray-700/80 rounded-xl px-3 py-3 flex flex-col gap-1"
@@ -337,7 +444,6 @@ export default function FlightStatus() {
               ))}
             </div>
 
-            {/* Extra nerd line */}
             <div className="mt-4 flex items-center justify-between text-[11px] text-gray-400">
               <span>
                 GS approx{" "}
@@ -346,7 +452,7 @@ export default function FlightStatus() {
                 </span>
               </span>
               <span className="italic text-gray-500">
-                All values mocked for now. Real data later.
+                All values simulated for now. Real data later.
               </span>
             </div>
           </div>

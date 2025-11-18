@@ -1,7 +1,7 @@
 // components/FlightPhaseWeirdThings.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import {
   FLIGHT_PHASE_EVENTS,
   type FlightPhase,
@@ -10,7 +10,6 @@ import {
 
 interface Props {
   phase: FlightPhase;
-  // how many clickable items to show at once
   visibleCount?: number;
 }
 
@@ -30,8 +29,10 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
   const [selectedEvent, setSelectedEvent] = useState<FlightPhaseEvent | null>(
     null
   );
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const playTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Helper: pick a random unseen event; return null if all have been seen
   const pickRandomEvent = (
     excludeIds: Set<string>
   ): FlightPhaseEvent | null => {
@@ -61,17 +62,64 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
 
     setSeenIds(newSeen);
     setVisibleItems(initialVisible);
-    setSelectedEvent(null);
-  }, [phase, visibleCount]);
+    setSelectedEvent(allEventsForPhase[0] || null);
+    setCurrentIndex(0);
+    setIsPlaying(false);
+  }, [phase, visibleCount, allEventsForPhase]);
+
+  // Autoplay effect
+  useEffect(() => {
+    if (isPlaying && allEventsForPhase.length > 0) {
+      playTimerRef.current = setInterval(() => {
+        setCurrentIndex(prev => (prev + 1) % allEventsForPhase.length);
+      }, 5000);
+    } else {
+      if (playTimerRef.current) {
+        clearInterval(playTimerRef.current);
+        playTimerRef.current = null;
+      }
+    }
+
+    return () => {
+      if (playTimerRef.current) {
+        clearInterval(playTimerRef.current);
+      }
+    };
+  }, [isPlaying, allEventsForPhase.length]);
+
+  // Update selected event when index changes
+  useEffect(() => {
+    if (allEventsForPhase.length > 0) {
+      setSelectedEvent(allEventsForPhase[currentIndex]);
+    }
+  }, [currentIndex, allEventsForPhase]);
+
+  const handlePrevious = () => {
+    setCurrentIndex(prev => 
+      prev === 0 ? allEventsForPhase.length - 1 : prev - 1
+    );
+  };
+
+  const handleNext = () => {
+    setCurrentIndex(prev => (prev + 1) % allEventsForPhase.length);
+  };
+
+  const handlePlayPause = () => {
+    setIsPlaying(prev => !prev);
+  };
 
   const handleClick = (slotId: number, event: FlightPhaseEvent | null) => {
     if (!event) return;
 
-    setSelectedEvent(event);
+    const clickedIndex = allEventsForPhase.findIndex(e => e.id === event.id);
+    if (clickedIndex !== -1) {
+      setCurrentIndex(clickedIndex);
+      setIsPlaying(false);
+    }
 
     setVisibleItems(prev => {
       const newSeen = new Set(seenIds);
-      newSeen.add(event.id); // mark clicked as seen
+      newSeen.add(event.id);
 
       const replacement = pickRandomEvent(newSeen);
       if (replacement) {
@@ -120,8 +168,51 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
       {/* Explanation panel */}
       {selectedEvent && (
         <div className="rounded-xl border border-sky-500/30 bg-slate-900/70 p-3 text-xs leading-relaxed space-y-2">
+          {/* Navigation controls */}
+          <div className="flex items-center justify-between border-b border-sky-500/20 pb-2 mb-2">
+            <div className="text-[10px] text-sky-400">
+              {currentIndex + 1} of {allEventsForPhase.length}
+            </div>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={handlePrevious}
+                className="p-1.5 rounded hover:bg-sky-500/20 transition text-sky-300"
+                title="Previous"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={handlePlayPause}
+                className="p-1.5 rounded hover:bg-sky-500/20 transition text-sky-300"
+                title={isPlaying ? "Pause" : "Play"}
+              >
+                {isPlaying ? (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+              </button>
+              <button
+                onClick={handleNext}
+                className="p-1.5 rounded hover:bg-sky-500/20 transition text-sky-300"
+                title="Next"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
           <div className="text-[10px] uppercase tracking-wide text-sky-300">
-            What you’re noticing
+            What you're noticing
           </div>
           <div>
             <div className="font-medium mb-1">

@@ -480,25 +480,108 @@ export default function FlightStatus() {
           </div>
         </div>
 
-        {/* Phase timeline */}
-        <div className="mt-4">
-          <div className="flex justify-between text-[10px] text-slate-400 uppercase tracking-[0.2em]">
-            {["Gate", "Taxi", "Takeoff", "Climb", "Cruise", "Descent", "Landing"].map(
-              p => {
-                const isCurrent = p.toLowerCase() === phase.toLowerCase();
-                return (
-                  <span
-                    key={p}
-                    className={
-                      "flex-1 text-center transition-colors duration-200 " +
-                      (isCurrent ? "text-sky-400 font-semibold" : "")
-                    }
-                  >
-                    {p}
-                  </span>
-                );
-              }
-            )}
+        {/* Enhanced Phase Timeline with Progress Indicator */}
+        <div className="mt-6 mb-2">
+          {/* Phase labels with status indicators */}
+          <div className="relative">
+            {/* Progress line background */}
+            <div className="absolute top-8 left-[7%] right-[7%] h-1 bg-slate-800/50 rounded-full" />
+            
+            {/* Active progress line */}
+            <div 
+              className="absolute top-8 left-[7%] h-1 bg-gradient-to-r from-emerald-400 to-sky-400 rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(52,211,153,0.4)]"
+              style={{
+                width: `${Math.max(0, Math.min(86, (["gate", "taxi", "takeoff", "climb", "cruise", "descent", "landing"].indexOf(phase.toLowerCase()) + 0.5) * (86 / 7)))}%`
+              }}
+            />
+            
+            {/* Phase indicators */}
+            <div className="relative flex justify-between">
+              {["Gate", "Taxi", "Takeoff", "Climb", "Cruise", "Descent", "Landing"].map(
+                (p, index) => {
+                  const phases = ["gate", "taxi", "takeoff", "climb", "cruise", "descent", "landing"];
+                  const currentPhaseIndex = phases.indexOf(phase.toLowerCase());
+                  const phaseIndex = phases.indexOf(p.toLowerCase());
+                  const isCompleted = phaseIndex < currentPhaseIndex;
+                  const isCurrent = phaseIndex === currentPhaseIndex;
+                  const isUpcoming = phaseIndex > currentPhaseIndex;
+                  
+                  return (
+                    <div
+                      key={p}
+                      className="flex-1 flex flex-col items-center relative"
+                    >
+                      {/* Phase label */}
+                      <span
+                        className={`
+                          text-[10px] uppercase tracking-[0.15em] font-medium transition-all duration-300
+                          ${isCompleted ? "text-emerald-400" : ""}
+                          ${isCurrent ? "text-sky-400 font-bold scale-110" : ""}
+                          ${isUpcoming ? "text-slate-500" : ""}
+                        `}
+                      >
+                        {p}
+                      </span>
+                      
+                      {/* Phase dot indicator */}
+                      <div className="mt-2 relative z-10">
+                        <div
+                          className={`
+                            w-3 h-3 rounded-full transition-all duration-300 flex items-center justify-center
+                            ${isCompleted ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" : ""}
+                            ${isCurrent ? "bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.8)] scale-125" : ""}
+                            ${isUpcoming ? "bg-slate-700 border border-slate-600" : ""}
+                          `}
+                        >
+                          {/* Pulsing ring for current phase */}
+                          {isCurrent && (
+                            <div className="absolute inset-[-4px] rounded-full border-2 border-sky-400 animate-ping opacity-75" />
+                          )}
+                          
+                          {/* Checkmark for completed phases */}
+                          {isCompleted && (
+                            <svg
+                              className="w-2 h-2 text-slate-950"
+                              viewBox="0 0 12 12"
+                              fill="none"
+                            >
+                              <path
+                                d="M3 6L5 8L9 4"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        
+                        {/* Airplane icon at current position */}
+                        {isCurrent && (
+                          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2">
+                            <div className="relative animate-bounce">
+                              <span className="text-base text-sky-400 drop-shadow-[0_0_4px_rgba(56,189,248,0.8)]">✈︎</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+              )}
+            </div>
+          </div>
+          
+          {/* Phase status text */}
+          <div className="mt-8 text-center">
+            <p className="text-xs text-slate-400">
+              Current Phase: <span className="text-sky-400 font-semibold capitalize">{phase}</span>
+              {currentRoute && (
+                <span className="ml-2 text-slate-500">
+                  • {["gate", "taxi", "takeoff", "climb", "cruise", "descent", "landing"].indexOf(phase.toLowerCase()) + 1} of 7 phases complete
+                </span>
+              )}
+            </p>
           </div>
         </div>
 

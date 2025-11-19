@@ -215,47 +215,172 @@ function formatTimeRemaining(estimatedArrival: Date): string {
   return `${hours}h ${minutes}m`;
 }
 
-function getPilotActivity(phase: string) {
-  if (phase === "climb") {
+function getEnhancedPilotActivity(phase: string) {
+  const p = phase.toLowerCase();
+  
+  if (p === "gate") {
     return {
-      title: "Right now the pilots are letting the airplane do the work.",
-      lines: [
-        "Autopilot is already on, flying a programmed route and climb profile.",
-        "They're watching the flight path, talking to departure control every few minutes, and cleaning up checklists.",
-        "The aircraft is trimmed and stable, climbing efficiently to cruise altitude.",
+      summary: "At the gate, pilots are running through methodical pre-flight preparations.",
+      actualActivities: [
+        "Programming the flight computer with the exact route, weights, and weather",
+        "Reviewing paperwork: weather reports, NOTAMs, weight and balance calculations",
+        "Running pre-flight checks on all aircraft systems",
+        "Coordinating with ground crew, fuelers, and dispatch",
+        "Briefing the cabin crew on flight time, weather, and any special considerations"
       ],
+      anxiousThoughts: [
+        "Pilots are just sitting there waiting to leave",
+        "They're hoping the plane works when they start it",
+        "Nobody's checking if everything is safe",
+        "They're making it up as they go along",
+        "Last-minute scrambling to figure out the flight"
+      ]
     };
   }
-
-  if (phase === "cruise") {
+  
+  if (p === "taxi") {
     return {
-      title: "In cruise, the job is mostly monitoring and talking.",
-      lines: [
-        "Autopilot is flying. The airplane is trimmed, stable, and following the magenta line.",
-        "They check in with ATC every few minutes, review weather ahead, and plan the descent.",
-        "Hands on the controls? Only for tiny adjustments when needed.",
+      summary: "During taxi, pilots are following precise ground procedures while preparing for takeoff.",
+      actualActivities: [
+        "Following specific taxi routes given by ground control",
+        "Running through engine warm-up procedures and system checks",
+        "Setting takeoff configuration: flaps, trim, thrust settings",
+        "Reviewing the takeoff briefing: speeds, procedures, emergency actions",
+        "Monitoring other aircraft and following ground markings"
       ],
+      anxiousThoughts: [
+        "They're just driving around randomly looking for the runway",
+        "The plane might not have enough power to take off",
+        "They're not sure which runway to use",
+        "No one's watching for other planes",
+        "They're rushing because they're late"
+      ]
     };
   }
-
-  if (phase === "descent") {
+  
+  if (p === "takeoff") {
     return {
-      title: "During descent, it's still mostly systems and talking.",
-      lines: [
-        "Autopilot is flying down a planned path toward the arrival.",
-        "They're briefing the approach, setting up radios, and checking in with new ATC sectors.",
-        "Actual 'hand flying' is a small slice of the whole flight - most of this is supervising a very smart machine.",
+      summary: "Right now their attention is focused on flying the takeoff profile they briefed before departure.",
+      actualActivities: [
+        "Following the exact takeoff profile: V1 (decision speed), VR (rotation), V2 (climb)",
+        "Monitoring engine parameters and aircraft acceleration",
+        "Pilot flying focuses on the takeoff, pilot monitoring calls out speeds",
+        "Ready to execute specific procedures for any abnormality",
+        "Transitioning to climb configuration at safe altitude"
       ],
+      anxiousThoughts: [
+        "They're pulling back as hard as they can to get airborne",
+        "Hope we have enough speed to get off the ground",
+        "What if an engine fails right now?",
+        "They're fighting to keep the plane straight",
+        "This is the most dangerous part and anything could happen"
+      ]
     };
   }
-
+  
+  if (p === "climb") {
+    return {
+      summary: "In climb, the autopilot is engaged and pilots are managing the climb profile while coordinating with ATC.",
+      actualActivities: [
+        "Autopilot engaged, following the programmed departure procedure",
+        "Monitoring engine performance and fuel flow",
+        "Complying with ATC altitude and heading clearances",
+        "Retracting flaps on schedule and accelerating to climb speed",
+        "Running after-takeoff checklists and cleaning up the cockpit"
+      ],
+      anxiousThoughts: [
+        "They're struggling to gain altitude",
+        "The plane is barely climbing and might stall",
+        "They're hand-flying through dangerous altitudes",
+        "No one knows where other planes are",
+        "The engines are straining to climb"
+      ]
+    };
+  }
+  
+  if (p === "cruise") {
+    return {
+      summary: "In cruise, the job is mostly monitoring and talking.",
+      actualActivities: [
+        "Autopilot maintaining altitude, speed, and navigation",
+        "Monitoring fuel burn against flight plan",
+        "Checking weather ahead and at destination",
+        "Position reports to ATC and frequency changes",
+        "Reviewing approach charts and planning descent",
+        "One pilot can leave for physiological needs while other monitors"
+      ],
+      anxiousThoughts: [
+        "Both pilots might fall asleep with nothing to do",
+        "No one's actually flying the plane",
+        "They're not paying attention anymore",
+        "The autopilot could fail any second",
+        "They're just hoping nothing goes wrong",
+        "Turbulence could flip the plane over"
+      ]
+    };
+  }
+  
+  if (p === "descent") {
+    return {
+      summary: "They're setting up and double-checking the plan for landing.",
+      actualActivities: [
+        "Programming the descent profile into the flight computer",
+        "Briefing the approach: runway, weather, minimums, missed approach",
+        "Setting up navigation radios and approach systems",
+        "Coordinating with ATC for descent clearance and vectors",
+        "Managing speed and configuration changes during descent",
+        "Preparing the cabin through flight attendant coordination"
+      ],
+      anxiousThoughts: [
+        "They're diving toward the ground too fast",
+        "Losing altitude means losing control",
+        "The pilots don't know where the airport is",
+        "They're making up the approach as they go",
+        "The plane is falling and they're trying to save it",
+        "Ears popping means something's wrong"
+      ]
+    };
+  }
+  
+  if (p === "landing") {
+    return {
+      summary: "During approach and landing, pilots are executing a precisely briefed procedure with multiple decision points.",
+      actualActivities: [
+        "Following the instrument approach procedure exactly",
+        "Pilot flying focuses on approach, pilot monitoring calls out deviations",
+        "Configuring aircraft: gear down, flaps, speed brakes armed",
+        "Decision at minimums: land or go around based on visual conditions",
+        "Transitioning from instruments to visual for touchdown",
+        "Managing crosswinds with precise control inputs"
+      ],
+      anxiousThoughts: [
+        "They're trying to find the runway in bad weather",
+        "Coming in too fast and might overshoot",
+        "Fighting the controls in the wind",
+        "Hoping the brakes work when we touch down",
+        "This is the most dangerous part of flight",
+        "One mistake and we crash"
+      ]
+    };
+  }
+  
+  // Default return
   return {
-    title: "The pilots aren't 'driving' like a car - they're supervising a system.",
-    lines: [
-      "Modern airliners are flown by autopilot most of the time, on routes that were planned long before you boarded.",
-      "The pilots talk to ATC, manage systems, and step in if something needs a human decision.",
-      "Their job is to stay ahead of the airplane with planning and procedures.",
+    summary: "Pilots are managing systems and following procedures for this phase of flight.",
+    actualActivities: [
+      "Monitoring aircraft systems and flight progress",
+      "Communicating with air traffic control",
+      "Following standard operating procedures",
+      "Cross-checking instruments and parameters",
+      "Staying ahead of the aircraft with planning"
     ],
+    anxiousThoughts: [
+      "The pilots don't know what they're doing",
+      "They're making it up as they go",
+      "Something could go wrong any moment",
+      "No one's really in control",
+      "They're just hoping for the best"
+    ]
   };
 }
 
@@ -567,7 +692,7 @@ export default function FlightStatus() {
   const estimatedArrival = currentRoute.estimatedArrival;
   const timeRemaining = formatTimeRemaining(estimatedArrival);
   // arrivalTime is now handled by clientArrivalTime state to prevent hydration mismatch
-  const pilotActivity = getPilotActivity(phase);
+  const pilotActivity = getEnhancedPilotActivity(phase);
   
   // Get airline and flight number - use the original user input if available
   const getFlightInfo = () => {
@@ -1497,42 +1622,52 @@ export default function FlightStatus() {
               {/* PILOTS Section */}
               {section.id === 'PILOTS' && (
                 <div className="space-y-4">
-                  <div className="bg-white/[0.03] rounded-lg p-3">
-                    <h4 className="text-sm font-medium text-sky-400 mb-2">{pilotActivity.title}</h4>
-                    <ul className="space-y-2">
-                      {pilotActivity.lines.map((line, idx) => (
-                        <li key={idx} className="flex gap-2 text-sm text-slate-300">
-                          <span className="text-sky-400">•</span>
-                          <span>{line}</span>
-                        </li>
-                      ))}
-                    </ul>
+                  {/* Phase-aware summary */}
+                  <div className="bg-white/[0.03] rounded-lg p-4 border border-white/5">
+                    <p className="text-sm text-slate-200 leading-relaxed">
+                      {pilotActivity.summary}
+                    </p>
                   </div>
                   
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <div>
-                      <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400 mb-3">
+                  {/* Two-column comparison layout */}
+                  <div className="grid gap-4 md:gap-6 md:grid-cols-2">
+                    {/* Actual activities column */}
+                    <div className="bg-white/[0.02] rounded-lg p-4 border border-white/5">
+                      <div className="text-xs font-semibold tracking-[0.2em] uppercase text-emerald-400 mb-4">
                         What they're actually doing
                       </div>
-                      <ul className="space-y-2.5 text-slate-200 text-sm leading-relaxed">
-                        <li className="flex gap-2"><span className="text-sky-400">•</span> Monitoring the autopilot and flight path, not hand-flying the whole time.</li>
-                        <li className="flex gap-2"><span className="text-sky-400">•</span> Talking with ATC, watching the weather ahead, and planning the next phase.</li>
-                        <li className="flex gap-2"><span className="text-sky-400">•</span> Cross-checking instruments and system messages, most of which are boringly normal.</li>
-                        <li className="flex gap-2"><span className="text-sky-400">•</span> Staying ahead of the airplane with checklists and briefings instead of reacting last-second.</li>
+                      <ul className="space-y-3">
+                        {pilotActivity.actualActivities.map((activity, idx) => (
+                          <li key={idx} className="flex gap-2 text-sm text-slate-200 leading-relaxed">
+                            <span className="text-emerald-400 mt-0.5">•</span>
+                            <span>{activity}</span>
+                          </li>
+                        ))}
                       </ul>
                     </div>
 
-                    <div>
-                      <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400 mb-3">
+                    {/* Anxious thoughts column */}
+                    <div className="bg-white/[0.02] rounded-lg p-4 border border-white/5">
+                      <div className="text-xs font-semibold tracking-[0.2em] uppercase text-orange-400 mb-4">
                         What a frightened mind imagines
                       </div>
-                      <ul className="space-y-2.5 text-slate-300/80 text-sm leading-relaxed">
-                        <li className="flex gap-2"><span className="text-slate-500">•</span> White-knuckle "steering" the jet every second to keep it from falling.</li>
-                        <li className="flex gap-2"><span className="text-slate-500">•</span> Fighting the turbulence like it's a storm in a movie.</li>
-                        <li className="flex gap-2"><span className="text-slate-500">•</span> Hoping nothing breaks because there's no backup plan.</li>
-                        <li className="flex gap-2"><span className="text-slate-500">•</span> Being surprised by every sound or motion instead of expecting them.</li>
+                      <ul className="space-y-3">
+                        {pilotActivity.anxiousThoughts.map((thought, idx) => (
+                          <li key={idx} className="flex gap-2 text-sm text-slate-300/80 leading-relaxed">
+                            <span className="text-slate-500 mt-0.5">•</span>
+                            <span>{thought}</span>
+                          </li>
+                        ))}
                       </ul>
                     </div>
+                  </div>
+                  
+                  {/* Additional context note */}
+                  <div className="bg-white/[0.02] rounded-lg p-3 border border-white/5">
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      <span className="text-sky-400 font-medium">Remember:</span> Commercial aviation operates on redundancy, procedures, and multiple layers of safety. 
+                      Every phase is planned, briefed, and executed systematically.
+                    </p>
                   </div>
                 </div>
               )}

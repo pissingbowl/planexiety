@@ -4,7 +4,6 @@
 import { useEffect, useState } from "react";
 import { FlightPhaseWeirdThings } from "./FlightPhaseWeirdThings";
 import { AccordionSection } from "./AccordionSection";
-import LiveFlightMap from "./LiveFlightMap";
 import type { FlightPhase } from "@/lib/flightPhaseEvents";
 
 // --- Tiny inline flight map ---
@@ -323,25 +322,8 @@ export default function FlightStatus() {
           </div>
         </div>
 
-        {/* MAP - Always visible */}
-        <div className="mt-6 rounded-2xl border border-sky-900/60 bg-slate-950/60 overflow-hidden">
-          <div className="px-4 py-3 md:px-5 md:py-4">
-            <div className="text-left">
-              <div className="text-xs font-semibold tracking-[0.18em] uppercase text-sky-400">
-                MAP
-              </div>
-              <div className="mt-1 text-xs text-slate-300/80">
-                Live flights across the USA. Click any aircraft for details.
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-sky-900/60 px-4 py-4 md:px-5 md:py-5 text-sm text-slate-100 space-y-3">
-            <LiveFlightMap />
-          </div>
-        </div>
-
         {/* Accordion sections */}
-        <div className="mt-3 space-y-3">
+        <div className="mt-6 space-y-3">
 
           {/* WEATHER */}
           <AccordionSection

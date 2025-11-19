@@ -59,6 +59,29 @@ body {
   }
 }
 
+@keyframes breathingGuide {
+  0% { 
+    width: 0%;
+    opacity: 0.8;
+  }
+  33% { 
+    width: 33%;
+    opacity: 1;
+  }
+  66% { 
+    width: 66%;
+    opacity: 0.9;
+  }
+  100% { 
+    width: 100%;
+    opacity: 0.6;
+  }
+}
+
+.animate-breathe {
+  animation: breathingGuide 8s ease-in-out infinite;
+}
+
 @keyframes tentacleSway {
   0%, 100% { 
     transform: skewX(0deg) rotateZ(0deg) scaleY(1);

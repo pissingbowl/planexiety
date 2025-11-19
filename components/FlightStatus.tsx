@@ -493,6 +493,136 @@ function BumpMeter({ currentLevel }: BumpMeterProps) {
   );
 }
 
+// --- Micro-Task Focus Suggestions ---
+interface MicroTaskSuggestion {
+  text: string;
+  icon?: string;
+}
+
+function getMicroTaskSuggestion(phase: string, turbulenceLevel: 'smooth' | 'light' | 'moderate' | 'severe'): MicroTaskSuggestion {
+  const suggestions: Record<string, Record<string, MicroTaskSuggestion[]>> = {
+    gate: {
+      smooth: [
+        { text: "Notice three textures around you - the seat fabric, your clothing, the armrest.", icon: "👐" },
+        { text: "Take a moment to set an intention for your journey today.", icon: "✨" },
+        { text: "While we prepare, count five blue things you can see from your seat.", icon: "👁️" },
+        { text: "Feel your feet on the floor. Notice how solid the ground feels right now.", icon: "🦶" }
+      ]
+    },
+    taxi: {
+      smooth: [
+        { text: "As we roll to the runway, notice the rhythm of the taxi. Like a gentle train ride.", icon: "🚂" },
+        { text: "Watch the ground crew outside. Notice their practiced, confident movements.", icon: "👷" },
+        { text: "Feel the subtle turns as we navigate. The pilots know every inch of this path.", icon: "🧭" },
+        { text: "Listen to the engine's steady hum. It's warming up, getting ready, just like you.", icon: "🎵" }
+      ]
+    },
+    takeoff: {
+      smooth: [
+        { text: "Feel your back against the seat as we climb. Count five things you can see.", icon: "🪑" },
+        { text: "Notice the gentle push into your seat. That's physics keeping you safe.", icon: "🚀" },
+        { text: "As we lift off, imagine roots extending from you into the aircraft structure.", icon: "🌳" },
+        { text: "The engines are doing exactly what they love to do. Listen to their confidence.", icon: "💪" }
+      ],
+      light: [
+        { text: "Little bumps on takeoff are just air pockets. Breathe out longer than you breathe in.", icon: "💨" },
+        { text: "Press your feet gently into the floor. You're connected to 400 tons of solid aircraft.", icon: "⚓" },
+        { text: "These wobbles are like driving over a small pothole - noticeable but harmless.", icon: "🛡️" }
+      ]
+    },
+    climb: {
+      smooth: [
+        { text: "We're climbing steadily. Watch the clouds change as we rise through layers.", icon: "☁️" },
+        { text: "Notice how your ears adjust to altitude. Your body knows exactly what to do.", icon: "👂" },
+        { text: "Feel the aircraft settle into its climb rhythm. Smooth and purposeful.", icon: "📈" },
+        { text: "Look at the wing tip. See how steady it is, even at this angle?", icon: "🦅" }
+      ],
+      light: [
+        { text: "Climbing through weather layers creates ripples. Notice them, then let them pass.", icon: "🌊" },
+        { text: "For the next minute, count your breaths. Aim for 12-15 calm, easy breaths.", icon: "🫁" },
+        { text: "These bumps are like walking on uneven pavement - irregular but totally safe.", icon: "🚶" }
+      ],
+      moderate: [
+        { text: "During these bumps, hold your armrest gently. Breathe in for 4, hold for 4, out for 6.", icon: "🧘" },
+        { text: "The plane is built for this. You're in a fortress designed for exactly these conditions.", icon: "🏰" },
+        { text: "Focus on something stationary in the cabin. Notice how little it actually moves.", icon: "📍" }
+      ]
+    },
+    cruise: {
+      smooth: [
+        { text: "While we cross this cloud layer, just notice the feeling of your feet on the floor.", icon: "🦶" },
+        { text: "Perfect cruise conditions. Take a moment to appreciate this engineering marvel.", icon: "✈️" },
+        { text: "Look out the window. You're seeing a view only 0.001% of humans see today.", icon: "🌍" },
+        { text: "Notice the quiet hum of cruise flight. This is the aircraft's happy place.", icon: "😌" }
+      ],
+      light: [
+        { text: "For the next 60 seconds, match your exhale to an imaginary gentle wave.", icon: "🌊" },
+        { text: "Light chop at cruise is like a boat on calm water - just little ripples passing under.", icon: "⛵" },
+        { text: "Place your hand on your chest. Feel your steady heartbeat through the gentle motion.", icon: "💙" },
+        { text: "These small movements are the atmosphere's texture. You're feeling the sky itself.", icon: "🌤️" }
+      ],
+      moderate: [
+        { text: "Hold something solid. Breathe in for 4, hold for 4, out for 6.", icon: "🫁" },
+        { text: "Moderate turbulence uses less than 1% of what this aircraft is built to handle.", icon: "💪" },
+        { text: "Focus on your breath. Make each exhale a little longer, a little softer.", icon: "💨" },
+        { text: "Press your feet down. Feel how the floor pushes back. That's thousands of pounds of structure.", icon: "🦾" }
+      ],
+      severe: [
+        { text: "This will pass soon. Keep breathing. The aircraft is performing perfectly.", icon: "🛡️" },
+        { text: "Hold your armrest firmly. You're secured to an incredibly strong structure.", icon: "⚓" },
+        { text: "Focus only on the next breath. In through nose, out through mouth.", icon: "🫁" },
+        { text: "The pilots train for this exact scenario hundreds of times. They've got this.", icon: "👨‍✈️" }
+      ]
+    },
+    descent: {
+      smooth: [
+        { text: "We're descending smoothly. Notice how controlled each altitude change feels.", icon: "📉" },
+        { text: "Feel your ears adjust. Yawn or swallow - your body knows what to do.", icon: "👂" },
+        { text: "Watch the ground slowly grow clearer. We're returning to earth on a precise path.", icon: "🎯" },
+        { text: "The descent is computer-calculated. Notice the steady, predictable rate.", icon: "💻" }
+      ],
+      light: [
+        { text: "Descent through cloud layers creates texture. Like driving down a bumpy hill.", icon: "⛰️" },
+        { text: "For the next minute, alternate focusing between near and far objects.", icon: "👀" },
+        { text: "These movements are the atmosphere welcoming us back to lower altitudes.", icon: "🌍" }
+      ],
+      moderate: [
+        { text: "Descending through weather is like walking down stairs in wind - bumpy but controlled.", icon: "🪜" },
+        { text: "Keep your feet flat on the floor. Feel the solid connection.", icon: "🦶" },
+        { text: "Breathe with the motion: in for 3, hold for 3, out for 5.", icon: "🫁" }
+      ]
+    },
+    landing: {
+      smooth: [
+        { text: "Watch the ground approach. Notice how smoothly the pilots guide us down.", icon: "🛬" },
+        { text: "Feel the aircraft respond to tiny adjustments. Such precise control.", icon: "🎮" },
+        { text: "We're following an exact glide path. Like sliding down an invisible rail.", icon: "📐" },
+        { text: "Notice the wing flaps adjusting. The aircraft is configuring itself perfectly.", icon: "🦅" }
+      ],
+      light: [
+        { text: "Little movements on approach are normal. The pilots are fine-tuning our path.", icon: "🎯" },
+        { text: "Focus on the horizon if you can see it. Notice how stable it actually is.", icon: "🌅" },
+        { text: "These adjustments are like parking a car - small corrections for perfect alignment.", icon: "🚗" }
+      ],
+      moderate: [
+        { text: "Final approach corrections feel bigger than they are. Trust the process.", icon: "✈️" },
+        { text: "The pilots do this multiple times daily. This is routine for them.", icon: "👨‍✈️" },
+        { text: "Breathe steadily. We'll be on the ground in moments.", icon: "🫁" }
+      ]
+    }
+  };
+
+  // Get suggestions for current phase and turbulence level
+  const phaseSuggestions = suggestions[phase.toLowerCase()] || suggestions.cruise;
+  const levelSuggestions = phaseSuggestions[turbulenceLevel] || phaseSuggestions.smooth || [
+    { text: "Take a moment to notice your breath. You're doing great.", icon: "😊" }
+  ];
+
+  // Randomly select a suggestion with deterministic fallback based on current time
+  const index = Math.floor(Date.now() / 30000) % levelSuggestions.length; // Changes every 30 seconds
+  return levelSuggestions[index];
+}
+
 // --- Main Component ---
 export default function FlightStatus() {
   // Flight tracking state
@@ -523,6 +653,16 @@ export default function FlightStatus() {
   
   // Client-side arrival time state to prevent hydration mismatch
   const [clientArrivalTime, setClientArrivalTime] = useState<string>("--:-- --");
+  
+  // Micro-task suggestion state
+  const [currentSuggestion, setCurrentSuggestion] = useState<MicroTaskSuggestion | null>(null);
+  
+  // Stability indicator state
+  const [lastChangeTimestamp, setLastChangeTimestamp] = useState<number>(Date.now());
+  const [showStabilityIndicator, setShowStabilityIndicator] = useState(false);
+  const [minutesSinceChange, setMinutesSinceChange] = useState(0);
+  const previousPhaseRef = useRef<string>("");
+  const previousTurbulenceRef = useRef<string>("");
   
   // Update interval ref
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -674,6 +814,11 @@ export default function FlightStatus() {
     return () => clearInterval(interval);
   }, [isTracking]);
   
+  // Determine current values (real or simulated)
+  const currentRoute = flightRoute || simulatedRoute;
+  const progress = currentRoute.progress;
+  const phase = currentRoute.phase;
+  
   // Update arrival time on client side only to prevent hydration mismatch
   useEffect(() => {
     // Calculate arrival time only on the client side
@@ -684,15 +829,114 @@ export default function FlightStatus() {
     }
   }, [flightRoute, simulatedRoute]);
   
-  // Determine current values (real or simulated)
-  const currentRoute = flightRoute || simulatedRoute;
-  const progress = currentRoute.progress;
-  const phase = currentRoute.phase;
+  // Monitor phase and turbulence changes for stability indicator
+  useEffect(() => {
+    const currentTurbulenceLevel = turbulenceData?.level || 'smooth';
+    
+    // Check if phase or turbulence level has changed
+    if (phase !== previousPhaseRef.current || currentTurbulenceLevel !== previousTurbulenceRef.current) {
+      // Update timestamp when meaningful change occurs
+      setLastChangeTimestamp(Date.now());
+      setShowStabilityIndicator(false); // Hide indicator on new change
+      setMinutesSinceChange(0);
+      
+      // Update refs for next comparison
+      previousPhaseRef.current = phase;
+      previousTurbulenceRef.current = currentTurbulenceLevel;
+    }
+    
+    // Set up interval to check time since last change
+    const checkInterval = setInterval(() => {
+      const timeSinceChange = Date.now() - lastChangeTimestamp;
+      const minutes = Math.floor(timeSinceChange / 60000);
+      setMinutesSinceChange(minutes);
+      
+      // Show indicator if no changes for 5+ minutes and not at gate
+      if (timeSinceChange >= 300000 && phase !== 'gate') {
+        setShowStabilityIndicator(true);
+      } else {
+        setShowStabilityIndicator(false);
+      }
+    }, 10000); // Check every 10 seconds
+    
+    return () => clearInterval(checkInterval);
+  }, [phase, turbulenceData?.level, lastChangeTimestamp]);
+  
+  // Update micro-task suggestions when phase or turbulence changes
+  useEffect(() => {
+    // Determine current turbulence level
+    let turbulenceLevel: 'smooth' | 'light' | 'moderate' | 'severe' = 'smooth';
+    
+    if (turbulenceData) {
+      if (turbulenceData.level === 'severe' || turbulenceData.level === 'extreme') {
+        turbulenceLevel = 'severe';
+      } else if (turbulenceData.level === 'moderate') {
+        turbulenceLevel = 'moderate';
+      } else if (turbulenceData.level === 'light') {
+        turbulenceLevel = 'light';
+      }
+    }
+    
+    // Get suggestion for current phase and turbulence
+    const suggestion = getMicroTaskSuggestion(phase, turbulenceLevel);
+    setCurrentSuggestion(suggestion);
+    
+    // Set up interval to rotate suggestions
+    const interval = setInterval(() => {
+      const newSuggestion = getMicroTaskSuggestion(phase, turbulenceLevel);
+      setCurrentSuggestion(newSuggestion);
+    }, 30000); // Update every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, [phase, turbulenceData?.level]);
+  
   const normalizedPhase = mapPhaseToFlightPhase(phase);
   const estimatedArrival = currentRoute.estimatedArrival;
   const timeRemaining = formatTimeRemaining(estimatedArrival);
   // arrivalTime is now handled by clientArrivalTime state to prevent hydration mismatch
   const pilotActivity = getEnhancedPilotActivity(phase);
+  
+  // Generate stability indicator message
+  const getStabilityMessage = () => {
+    const messages: Record<string, string[]> = {
+      taxi: [
+        `No new changes from the cockpit. Still taxiing to position.`,
+        `Everything steady for the last ${minutesSinceChange} minutes.`,
+        `All quiet on the flight deck. Standard taxi operations.`
+      ],
+      takeoff: [
+        `Smooth and unchanging - exactly what we want during takeoff.`,
+        `No updates for ${minutesSinceChange} minutes. Climbing as planned.`,
+        `Everything's steady. Standard takeoff profile.`
+      ],
+      climb: [
+        `No new changes. Just a steady climb to cruise altitude.`,
+        `All systems normal for ${minutesSinceChange} minutes now.`,
+        `Smooth climb continues. No turbulence changes.`
+      ],
+      cruise: [
+        `No new changes from the cockpit. Just boring cruise.`,
+        `Everything steady for the last ${minutesSinceChange} minutes.`,
+        `Smooth and unchanging - exactly what we want.`,
+        `No updates means all is well up front.`,
+        `${minutesSinceChange} minutes of peaceful cruise flight.`
+      ],
+      descent: [
+        `Steady descent for ${minutesSinceChange} minutes. All normal.`,
+        `No changes during descent. Smooth approach ahead.`,
+        `Everything stable as we descend.`
+      ],
+      landing: [
+        `Approach stable for ${minutesSinceChange} minutes.`,
+        `No new updates. Standard approach continues.`,
+        `All steady on final approach.`
+      ]
+    };
+    
+    const phaseMessages = messages[phase.toLowerCase()] || messages.cruise;
+    const index = Math.floor(Date.now() / 60000) % phaseMessages.length;
+    return phaseMessages[index];
+  };
   
   // Get airline and flight number - use the original user input if available
   const getFlightInfo = () => {
@@ -1121,6 +1365,41 @@ export default function FlightStatus() {
             <p className="font-semibold tracking-[0.1em] uppercase">Est. arrival (local)</p>
             <p className="font-mono text-slate-200 mt-0.5">
               {clientArrivalTime}
+            </p>
+          </div>
+        </div>
+
+        {/* Stability indicator - shows when no changes for 5+ minutes */}
+        <div 
+          className={`
+            mt-3 overflow-hidden transition-all duration-500 ease-in-out
+            ${showStabilityIndicator ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}
+          `}
+        >
+          <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-slate-800/30 to-sky-900/20 rounded-lg border border-slate-700/30 backdrop-blur-sm">
+            {/* Steady icon */}
+            <div className="flex items-center justify-center w-6 h-6">
+              <svg 
+                className="w-4 h-4 text-sky-400/70" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+                strokeWidth="1.5"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" 
+                />
+              </svg>
+            </div>
+            
+            {/* Message text */}
+            <p className="text-xs text-gray-400 flex-1">
+              <span className="inline-flex items-center gap-1">
+                <span className="inline-block w-1.5 h-1.5 rounded-full bg-gray-400/50 animate-pulse" />
+                {getStabilityMessage()}
+              </span>
             </p>
           </div>
         </div>
@@ -1674,6 +1953,69 @@ export default function FlightStatus() {
             </AccordionSection>
           ))}
         </div>
+
+        {/* Micro-Task Focus Suggestion Tile */}
+        {currentSuggestion && (
+          <div className="mt-6">
+            <div className="bg-white/[0.03] border border-slate-800/50 rounded-3xl p-6 backdrop-blur-sm">
+              {/* Header with soft gradient accent */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-400/20 to-emerald-400/20 flex items-center justify-center">
+                  <span className="text-lg">🧘</span>
+                </div>
+                <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-400/80">
+                  For the next minute
+                </h3>
+              </div>
+              
+              {/* Suggestion content */}
+              <div className="space-y-3">
+                <p className="text-base leading-relaxed text-slate-200">
+                  {currentSuggestion.text}
+                </p>
+                
+                {/* Visual breathing guide (appears for turbulence) */}
+                {(turbulenceData?.level === 'moderate' || turbulenceData?.level === 'severe') && (
+                  <div className="mt-4 p-3 bg-white/[0.02] rounded-xl border border-white/5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+                      <span className="text-xs text-slate-400 uppercase tracking-wider">
+                        Breathing guide
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="flex-1 h-2 rounded-full bg-gradient-to-r from-sky-400/30 to-sky-400/10 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-sky-400/60 to-transparent animate-breathe" />
+                      </div>
+                    </div>
+                    <div className="flex justify-between mt-1 text-[10px] text-slate-500">
+                      <span>Breathe in</span>
+                      <span>Hold</span>
+                      <span>Breathe out</span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Optional icon accent */}
+                {currentSuggestion.icon && (
+                  <div className="flex justify-end">
+                    <span className="text-2xl opacity-50">{currentSuggestion.icon}</span>
+                  </div>
+                )}
+              </div>
+              
+              {/* Subtle footer */}
+              <div className="mt-4 pt-3 border-t border-white/5">
+                <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+                  {phase === 'cruise' ? 'Steady as she goes' : 
+                   phase === 'takeoff' || phase === 'climb' ? 'Climbing smoothly' :
+                   phase === 'descent' || phase === 'landing' ? 'Returning to earth' :
+                   'Preparing for journey'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Real-time data indicators */}
         {isTracking && (

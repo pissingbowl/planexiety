@@ -396,25 +396,36 @@ export async function trackFlight(
     return null;
   }
   
-  if (!flightData.latitude || !flightData.longitude) {
-    console.error('Flight has no position data');
-    return null;
-  }
-  
-  // Calculate distances
+  // Calculate total distance
   const totalDistance = calculateDistance(departure.lat, departure.lon, arrival.lat, arrival.lon);
-  const distanceFromDeparture = calculateDistance(
-    departure.lat, 
-    departure.lon, 
-    flightData.latitude, 
-    flightData.longitude
-  );
-  const distanceToArrival = calculateDistance(
-    flightData.latitude,
-    flightData.longitude,
-    arrival.lat,
-    arrival.lon
-  );
+  
+  // Handle cases where position data is not available
+  let distanceFromDeparture: number;
+  let distanceToArrival: number;
+  let hasPositionData = false;
+  
+  if (flightData.latitude && flightData.longitude) {
+    hasPositionData = true;
+    distanceFromDeparture = calculateDistance(
+      departure.lat, 
+      departure.lon, 
+      flightData.latitude, 
+      flightData.longitude
+    );
+    distanceToArrival = calculateDistance(
+      flightData.latitude,
+      flightData.longitude,
+      arrival.lat,
+      arrival.lon
+    );
+  } else {
+    // No position data - estimate based on typical flight progress
+    console.log('Flight has no position data, using estimated progress');
+    // Default to early cruise phase (35% progress)
+    const defaultProgress = 35;
+    distanceFromDeparture = (totalDistance * defaultProgress) / 100;
+    distanceToArrival = totalDistance - distanceFromDeparture;
+  }
   
   // Calculate progress (0-100) using a more accurate method
   // Consider both distance from departure and distance to arrival
@@ -464,11 +475,11 @@ export async function trackFlight(
   const phase = determineFlightPhase(altitudeFeet, velocityKts, flightData.on_ground);
   
   // Estimate arrival time
-  const remainingDistance = totalDistance - distanceFromDeparture;
+  const remainingDistance = distanceToArrival;  // Use distanceToArrival instead of calculating from distanceFromDeparture
   
   // Use actual ground speed if available, otherwise estimate based on phase
   let effectiveSpeedKmh: number;
-  if (velocityKts > 50) {
+  if (hasPositionData && velocityKts > 50) {
     // Use actual ground speed if it's reasonable
     effectiveSpeedKmh = velocityKts * 1.852;
   } else {
@@ -476,7 +487,8 @@ export async function trackFlight(
     switch (phase) {
       case 'gate':
       case 'taxi':
-        effectiveSpeedKmh = 0;
+        // For gate/taxi, estimate total flight time
+        effectiveSpeedKmh = 850; // Will use for total time calculation
         break;
       case 'takeoff':
         effectiveSpeedKmh = 350; // ~189 knots
@@ -500,16 +512,42 @@ export async function trackFlight(
   
   // Calculate hours remaining with the effective speed
   let hoursRemaining: number;
-  if (effectiveSpeedKmh > 0) {
-    hoursRemaining = remainingDistance / effectiveSpeedKmh;
-  } else {
+  if (phase === 'gate' || phase === 'taxi') {
     // If still at gate/taxi, estimate based on typical total flight time
     const typicalCruiseSpeed = 850; // km/h
     const totalFlightHours = totalDistance / typicalCruiseSpeed + 0.5; // Add 30 min for taxi/climb/descent
     hoursRemaining = totalFlightHours * (1 - progress / 100);
+  } else if (!hasPositionData) {
+    // No position data - use typical flight time estimate
+    const typicalCruiseSpeed = 850; // km/h
+    const totalFlightHours = totalDistance / typicalCruiseSpeed + 0.5;
+    // Assume we're 35% through the flight (early cruise)
+    hoursRemaining = totalFlightHours * 0.65;
+  } else {
+    // Normal calculation with position data
+    hoursRemaining = remainingDistance / effectiveSpeedKmh;
+  }
+  
+  // Ensure we always have a reasonable time remaining (minimum 5 minutes if in flight)
+  if (phase !== 'gate' && phase !== 'landing' && hoursRemaining < 0.083) {
+    hoursRemaining = 0.083; // 5 minutes minimum
   }
   
   const estimatedArrival = new Date(Date.now() + hoursRemaining * 3600000);
+  
+  // Handle current position when no position data is available
+  let currentLat: number;
+  let currentLon: number;
+  
+  if (hasPositionData && flightData.latitude && flightData.longitude) {
+    currentLat = flightData.latitude;
+    currentLon = flightData.longitude;
+  } else {
+    // Estimate position based on progress along great circle route
+    const progressRatio = progress / 100;
+    currentLat = departure.lat + (arrival.lat - departure.lat) * progressRatio;
+    currentLon = departure.lon + (arrival.lon - departure.lon) * progressRatio;
+  }
   
   return {
     departure: {
@@ -523,8 +561,8 @@ export async function trackFlight(
       lon: arrival.lon,
     },
     currentPosition: {
-      lat: flightData.latitude,
-      lon: flightData.longitude,
+      lat: currentLat,
+      lon: currentLon,
       altitude: altitudeFeet,
     },
     progress,

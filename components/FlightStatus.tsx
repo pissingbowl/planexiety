@@ -1005,6 +1005,28 @@ export default function FlightStatus() {
           {getTurbulenceSummary()}
         </div>
 
+        {/* Autopilot & Redundancy Status Pills */}
+        <div className="flex flex-wrap gap-2 mt-4 mb-4">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/[0.02] rounded-full border border-emerald-900/30">
+            <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-xs text-gray-300">Autopilot flying</span>
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/[0.02] rounded-full border border-emerald-900/30">
+            <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-xs text-gray-300">All critical systems normal</span>
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/[0.02] rounded-full border border-emerald-900/30">
+            <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-xs text-gray-300">Multiple backups ready</span>
+          </div>
+        </div>
+
         {/* Turbulence Conditions Strip */}
         <div className="mt-6 mb-6 p-4 bg-white/[0.03] rounded-2xl border border-slate-800/50">
           {(() => {

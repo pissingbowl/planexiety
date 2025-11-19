@@ -272,7 +272,7 @@ export default function FlightStatus() {
 
   return (
     <section className="mt-10 w-full max-w-2xl mx-auto text-white">
-      <div className="bg-slate-950/60 border border-white/10 rounded-2xl p-6 shadow-xl backdrop-blur-xl">
+      <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/5 to-white/2 p-6 md:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.6)] backdrop-blur-xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>

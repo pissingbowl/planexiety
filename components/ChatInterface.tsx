@@ -197,23 +197,23 @@ export default function ChatInterface() {
   const progressDescription = getProgressDescription();
 
   return (
-    <section className="w-full max-w-2xl mx-auto">
-      <div className="bg-gray-900/80 border border-gray-800 rounded-2xl p-5 shadow-lg">
-        <div className="flex items-center justify-between mb-3">
+    <section className="w-full max-w-2xl mx-auto px-4 sm:px-0">
+      <div className="bg-white/[0.03] border border-slate-800/50 rounded-3xl p-5 sm:p-6 md:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.3)] backdrop-blur-sm transition-all duration-300">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
           <div className="flex-1">
-            <h2 className="text-lg font-semibold">Talk to OTIE</h2>
-            <p className="text-xs text-gray-400">
-              Say what's actually happening in your body and brain. OTIE responds in real time.
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-200">Talk to OTIE</h2>
+            <p className="text-xs sm:text-sm text-gray-400 mt-1 leading-relaxed">
+              Tell OTIE what's happening in your body. Get real-time support.
             </p>
             
-            {/* Anxiety trend display */}
+            {/* Anxiety trend display - More compact on mobile */}
             {trendDisplay && (
-              <div className="mt-2 space-y-1">
+              <div className="mt-3 p-2 bg-white/[0.02] rounded-xl border border-slate-800/30">
                 <p className="text-xs text-gray-300">
                   {trendDisplay.text}
                 </p>
                 {progressDescription && (
-                  <p className="text-xs text-gray-400">
+                  <p className="text-[11px] text-gray-400 mt-1">
                     {progressDescription}
                   </p>
                 )}
@@ -222,21 +222,26 @@ export default function ChatInterface() {
           </div>
 
           {lastPhase && (
-            <div className="flex flex-col items-end gap-1 text-right">
-              <span className="inline-flex items-center rounded-full bg-gray-900/60 border border-gray-700 px-2 py-0.5 text-[10px] uppercase tracking-[0.18em] text-gray-300">
+            <div className="flex sm:flex-col items-start sm:items-end gap-1">
+              <span className="inline-flex items-center rounded-full bg-white/[0.03] border border-slate-700/50 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-gray-300 transition-all duration-200">
                 Phase: {lastPhase}
               </span>
             </div>
           )}
         </div>
         
-        {/* Anxiety level slider */}
-        <div className="mb-4 p-3 bg-white/[0.03] border border-slate-800/50 rounded-xl">
-          <label htmlFor="anxiety-slider" className="block text-xs text-gray-300 mb-2">
-            Current anxiety level: {currentAnxiety}
-          </label>
+        {/* Anxiety level slider - Enhanced for mobile */}
+        <div className="mb-5 p-4 bg-white/[0.04] border border-slate-800/50 rounded-2xl transition-all duration-200">
+          <div className="flex items-center justify-between mb-3">
+            <label htmlFor="anxiety-slider" className="text-xs sm:text-sm text-gray-300 font-medium">
+              Anxiety level
+            </label>
+            <span className="text-sm sm:text-base font-semibold text-sky-400 px-2 py-1 bg-white/[0.03] rounded-lg">
+              {currentAnxiety}
+            </span>
+          </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-gray-500">0</span>
+            <span className="text-xs text-gray-500 font-mono">0</span>
             <input
               id="anxiety-slider"
               type="range"
@@ -244,59 +249,61 @@ export default function ChatInterface() {
               max="10"
               value={currentAnxiety}
               onChange={(e) => handleAnxietyChange(Number(e.target.value))}
-              className="flex-1 h-2 bg-gray-700/50 rounded-lg appearance-none cursor-pointer 
-                       [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 
-                       [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full 
-                       [&::-webkit-slider-thumb]:bg-blue-500 [&::-webkit-slider-thumb]:hover:bg-blue-400
-                       [&::-webkit-slider-thumb]:transition-colors
-                       [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 
-                       [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-blue-500 
-                       [&::-moz-range-thumb]:hover:bg-blue-400 [&::-moz-range-thumb]:border-none
-                       [&::-moz-range-thumb]:transition-colors"
+              className="flex-1 h-3 bg-slate-700/50 rounded-lg appearance-none cursor-pointer touch-none
+                       [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 
+                       [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full 
+                       [&::-webkit-slider-thumb]:bg-sky-500 [&::-webkit-slider-thumb]:hover:bg-sky-400
+                       [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200
+                       [&::-webkit-slider-thumb]:shadow-[0_0_10px_rgba(56,189,248,0.5)]
+                       [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 
+                       [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-sky-500 
+                       [&::-moz-range-thumb]:hover:bg-sky-400 [&::-moz-range-thumb]:border-none
+                       [&::-moz-range-thumb]:transition-all [&::-moz-range-thumb]:duration-200
+                       [&::-moz-range-thumb]:shadow-[0_0_10px_rgba(56,189,248,0.5)]"
             />
-            <span className="text-xs text-gray-500">10</span>
+            <span className="text-xs text-gray-500 font-mono">10</span>
           </div>
-          <p className="text-[10px] text-gray-500 mt-1">
-            Slide to report how anxious you feel right now
+          <p className="text-[10px] sm:text-xs text-gray-500 mt-2 italic">
+            Move the slider to match how you're feeling
           </p>
         </div>
 
-        {/* Messages */}
-        <div className="mb-4 max-h-64 overflow-y-auto space-y-2 text-sm">
+        {/* Messages - Enhanced scrolling and mobile-friendly */}
+        <div className="mb-5 max-h-64 sm:max-h-80 overflow-y-auto space-y-3 px-1 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
           {messages.length === 0 && (
-            <p className="text-xs text-gray-500">
-              Example: "We just hit a bump and my stomach dropped. My chest feels tight and my brain is screaming that something's wrong."
-            </p>
+            <div className="p-4 bg-white/[0.02] rounded-2xl border border-slate-800/30">
+              <p className="text-xs sm:text-sm text-gray-400 italic leading-relaxed">
+                Example: "We just hit a bump and my stomach dropped. My chest feels tight."
+              </p>
+            </div>
           )}
 
           {messages.map((m, i) => (
             <div
               key={i}
-              className={
-                "flex " +
-                (m.role === "user" ? "justify-end" : "justify-start")
-              }
+              className={`flex gap-2 ${
+                m.role === "user" ? "justify-end" : "justify-start"
+              }`}
             >
               <div
-                className={
-                  "max-w-[80%] rounded-2xl px-3 py-2 text-sm " +
-                  (m.role === "user"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-800 text-gray-100")
-                }
+                className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-4 py-2.5 text-sm transition-all duration-200 ${
+                  m.role === "user"
+                    ? "bg-sky-600/80 text-white backdrop-blur-sm"
+                    : "bg-white/[0.05] text-gray-100 border border-slate-800/50"
+                }`}
               >
-                <p className="whitespace-pre-line">{m.content}</p>
+                <p className="whitespace-pre-line leading-relaxed">{m.content}</p>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Input only */}
-        <div className="flex flex-col gap-2">
+        {/* Input area - Better mobile touch targets */}
+        <div className="flex flex-col gap-3">
           <textarea
-            className="w-full rounded-xl bg-gray-950/70 border border-gray-700 px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-2xl bg-white/[0.03] border border-slate-700/50 px-4 py-3 text-sm sm:text-base text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500/50 transition-all duration-200 min-h-[80px] resize-none"
             rows={3}
-            placeholder="Tell OTIE what's actually going on in your head and body right now..."
+            placeholder="Tell OTIE what you're feeling right now..."
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -306,15 +313,24 @@ export default function ChatInterface() {
             type="button"
             onClick={sendMessage}
             disabled={loading || !input.trim()}
-            className="inline-flex justify-center items-center rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold py-2 px-4 transition-colors"
+            className="inline-flex justify-center items-center rounded-2xl bg-sky-600 hover:bg-sky-500 active:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base font-semibold py-3 px-6 transition-all duration-200 min-h-[48px] touch-manipulation shadow-lg shadow-sky-900/20"
           >
-            {loading ? "OTIE is responding..." : "Send to OTIE"}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                OTIE is thinking...
+              </span>
+            ) : (
+              "Send to OTIE"
+            )}
           </button>
 
           {error && (
-            <p className="text-xs text-red-400 mt-1">
-              {error}
-            </p>
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
+              <p className="text-xs sm:text-sm text-red-400">
+                {error}
+              </p>
+            </div>
           )}
         </div>
       </div>

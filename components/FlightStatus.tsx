@@ -1152,43 +1152,43 @@ export default function FlightStatus() {
     }
   };
   
-  // Define sections array for accordions
+  // Define sections array for accordions - Specific order for anxiety reduction
   const sections = [
     {
       id: 'WEATHER',
-      title: 'WEATHER',
-      subtitle: weatherData ? 'Live weather at origin and destination' : 'Real-time weather at origin, en route, and destination.',
+      title: 'Weather Along Your Route',
+      subtitle: weatherData ? 'Live conditions at departure and arrival' : 'Current weather affecting your journey',
       icon: '☁️'
     },
     {
       id: 'AROUND',
-      title: "WHAT'S AROUND ME?",
-      subtitle: nearbyFlights.length > 0 ? `${nearbyFlights.length} aircraft nearby` : "A sense of what you're flying over right now.",
+      title: "What's Around Me",
+      subtitle: nearbyFlights.length > 0 ? `${nearbyFlights.length} other planes sharing your airspace` : "See who else is up here with you",
       icon: '🗺️'
     },
     {
       id: 'TURBULENCE',
-      title: 'TURBULENCE ANALYSIS',
-      subtitle: turbulenceData ? turbulenceData.summary : 'Why the bumps feel big, and why the jet is built for far more.',
+      title: "Today's Turbulence Report",
+      subtitle: 'Understanding the bumps and why they\'re normal',
       icon: '〰️'
     },
     {
       id: 'WEIRD',
-      title: 'THINGS THAT FEEL WEIRD BUT ARE TOTALLY NORMAL',
-      subtitle: 'Tap anything that sounds familiar to see what it really is, why it exists, and what covers you if that part misbehaves.',
+      title: 'Things that feel weird but are totally normal',
+      subtitle: 'Those strange sounds and sensations explained',
       icon: '✈️'
     },
     {
       id: 'PILOTS',
-      title: 'WHAT THE PILOTS ARE DOING RIGHT NOW',
-      subtitle: 'A grounded view of their job in this phase of flight.',
+      title: 'What the pilots are doing right now',
+      subtitle: `During ${phase}: exactly what\'s happening up front`,
       icon: '👨‍✈️'
     }
   ];
 
   return (
     <section className="mt-10 w-full max-w-2xl mx-auto text-white">
-      {/* Flight Input Component */}
+      {/* Flight Input Component - TOP */}
       <FlightInput 
         onFlightSelect={handleFlightSelect}
         initialFlightNumber={flightNumber}
@@ -1196,188 +1196,134 @@ export default function FlightStatus() {
         initialArrival={arrivalAirport}
       />
       
-      <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/5 to-white/2 p-6 md:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.6)] backdrop-blur-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+      <div className="rounded-3xl border border-slate-800/50 bg-white/[0.03] backdrop-blur-sm p-6 md:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.3)]">
+        {/* Header with Live Tracking Status - Following Flight Input */}
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
               {isTracking ? 'Live Flight' : 'Demo Flight'}
             </p>
-            <h2 className="text-xl font-semibold mt-1">
+            <h2 className="text-xl font-semibold mt-1 text-gray-200">
               {airline} <span className="font-mono">{flightNumber}</span>
             </h2>
-            <p className="text-sm text-slate-400 mt-1">
+            <p className="text-sm text-gray-400 mt-1">
               {departureAirport} → {arrivalAirport}
             </p>
           </div>
 
-          <div className="text-right">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-              Phase
+          <div className="text-left sm:text-right">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-400">
+              Current Phase
             </p>
             <p className="text-sm font-medium text-sky-400 capitalize">{phase}</p>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-gray-400 mt-1">
               Time remaining:{" "}
-              <span className="font-mono text-slate-200">
+              <span className="font-mono text-gray-200">
                 {timeRemaining}
               </span>
             </p>
           </div>
         </div>
 
-        {/* Flight map */}
+        {/* Flight map with better spacing */}
         <FlightMap 
           from={departureAirport} 
           to={arrivalAirport} 
           progressPercent={progress} 
         />
 
-        {/* Numeric progress bar */}
-        <div className="mb-4">
-          <div className="flex justify-between text-xs text-gray-400 mb-1">
-            <span>Flight progress</span>
-            <span className="font-mono text-gray-200">
-              {progress.toFixed(0)}%
-            </span>
-          </div>
-          <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-500 transition-all duration-500"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Enhanced Phase Timeline with Progress Indicator */}
-        <div className="mt-6 mb-2">
-          {/* Phase labels with status indicators */}
-          <div className="relative">
-            {/* Progress line background */}
-            <div className="absolute top-8 left-[7%] right-[7%] h-1 bg-slate-800/50 rounded-full" />
-            
-            {/* Active progress line */}
-            <div 
-              className="absolute top-8 left-[7%] h-1 bg-gradient-to-r from-emerald-400 to-sky-400 rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(52,211,153,0.4)]"
-              style={{
-                width: `${Math.max(0, Math.min(86, (["gate", "taxi", "takeoff", "climb", "cruise", "descent", "landing"].indexOf(phase.toLowerCase()) + 0.5) * (86 / 7)))}%`
-              }}
-            />
-            
-            {/* Phase indicators */}
-            <div className="relative flex justify-between">
-              {["Gate", "Taxi", "Takeoff", "Climb", "Cruise", "Descent", "Landing"].map(
-                (p, index) => {
-                  const phases = ["gate", "taxi", "takeoff", "climb", "cruise", "descent", "landing"];
-                  const currentPhaseIndex = phases.indexOf(phase.toLowerCase());
-                  const phaseIndex = phases.indexOf(p.toLowerCase());
-                  const isCompleted = phaseIndex < currentPhaseIndex;
-                  const isCurrent = phaseIndex === currentPhaseIndex;
-                  const isUpcoming = phaseIndex > currentPhaseIndex;
-                  
-                  return (
-                    <div
-                      key={p}
-                      className="flex-1 flex flex-col items-center relative"
-                    >
-                      {/* Phase label */}
-                      <span
-                        className={`
-                          text-[10px] uppercase tracking-[0.15em] font-medium transition-all duration-300
-                          ${isCompleted ? "text-emerald-400" : ""}
-                          ${isCurrent ? "text-sky-400 font-bold scale-110" : ""}
-                          ${isUpcoming ? "text-slate-500" : ""}
-                        `}
-                      >
-                        {p}
-                      </span>
-                      
-                      {/* Phase dot indicator */}
-                      <div className="mt-2 relative z-10">
-                        <div
-                          className={`
-                            w-3 h-3 rounded-full transition-all duration-300 flex items-center justify-center
-                            ${isCompleted ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)]" : ""}
-                            ${isCurrent ? "bg-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.8)] scale-125" : ""}
-                            ${isUpcoming ? "bg-slate-700 border border-slate-600" : ""}
-                          `}
-                        >
-                          {/* Pulsing ring for current phase */}
-                          {isCurrent && (
-                            <div className="absolute inset-[-4px] rounded-full border-2 border-sky-400 animate-ping opacity-75" />
-                          )}
-                          
-                          {/* Checkmark for completed phases */}
-                          {isCompleted && (
-                            <svg
-                              className="w-2 h-2 text-slate-950"
-                              viewBox="0 0 12 12"
-                              fill="none"
-                            >
-                              <path
-                                d="M3 6L5 8L9 4"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
-                          )}
-                        </div>
-                        
-                        {/* Airplane icon at current position */}
-                        {isCurrent && (
-                          <div className="absolute -bottom-6 left-1/2 -translate-x-1/2">
-                            <div className="relative animate-bounce">
-                              <span className="text-base text-sky-400 drop-shadow-[0_0_4px_rgba(56,189,248,0.8)]">✈︎</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                }
-              )}
-            </div>
-          </div>
-          
-          {/* Phase status text */}
-          <div className="mt-8 text-center">
-            <p className="text-xs text-slate-400">
-              Current Phase: <span className="text-sky-400 font-semibold capitalize">{phase}</span>
-              {currentRoute && (
-                <span className="ml-2 text-slate-500">
-                  • {["gate", "taxi", "takeoff", "climb", "cruise", "descent", "landing"].indexOf(phase.toLowerCase()) + 1} of 7 phases complete
-                </span>
-              )}
-            </p>
-          </div>
-        </div>
-
-        {/* Live status footer */}
-        <div className="mt-6 flex items-center justify-between text-sm">
+        {/* Live tracking indicator with phase progress */}
+        <div className="mt-6 mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 bg-white/[0.02] rounded-2xl border border-slate-800/30">
           <div className="flex items-center gap-2">
             <span className={`h-2 w-2 rounded-full ${isTracking ? 'bg-emerald-400' : 'bg-yellow-400'} animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.6)]`} />
-            <span className="text-slate-300">
-              {isTracking ? 'Live tracking' : 'Demo mode (enter flight above)'}
+            <span className="text-sm text-gray-300">
+              {isTracking ? 'Live tracking active' : 'Demo mode - enter flight above'}
             </span>
           </div>
-          <div className="text-right text-slate-400 text-xs">
-            <p className="font-semibold tracking-[0.1em] uppercase">Est. arrival (local)</p>
-            <p className="font-mono text-slate-200 mt-0.5">
+          <div className="text-left sm:text-right">
+            <p className="text-[10px] font-semibold tracking-[0.1em] uppercase text-gray-400">Arrival (local)</p>
+            <p className="font-mono text-sm text-gray-200">
               {clientArrivalTime}
             </p>
           </div>
         </div>
 
-        {/* Stability indicator - shows when no changes for 5+ minutes */}
+        {/* Autopilot & Systems Status Pills - High Priority Visual */}
+        <div className="flex flex-wrap gap-2 mb-8">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.03] rounded-full border border-emerald-900/30 transition-all duration-200 hover:bg-white/[0.05]">
+            <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-xs text-gray-300">Autopilot engaged</span>
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.03] rounded-full border border-emerald-900/30 transition-all duration-200 hover:bg-white/[0.05]">
+            <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-xs text-gray-300">All systems normal</span>
+          </div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/[0.03] rounded-full border border-emerald-900/30 transition-all duration-200 hover:bg-white/[0.05]">
+            <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-xs text-gray-300">Triple redundancy active</span>
+          </div>
+        </div>
+
+        {/* NOW/NEXT/LATER Turbulence Strip - Critical Information */}
+        <div className="mb-8 p-5 bg-white/[0.04] rounded-3xl border border-slate-800/50 backdrop-blur-sm">
+          {(() => {
+            const conditions = getTurbulenceConditions();
+            return (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+                {/* NOW */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-2 font-medium">NOW</div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`w-2.5 h-2.5 rounded-full ${getTurbulenceColorClass(conditions.now.level)} shadow-[0_0_6px_rgba(255,255,255,0.3)]`}></span>
+                    <span className="text-sm text-gray-200 font-medium">{conditions.now.description}</span>
+                  </div>
+                  <div className="text-xs text-gray-400">{conditions.now.detail}</div>
+                </div>
+                
+                {/* Visual divider on desktop */}
+                <div className="hidden sm:block w-px h-14 bg-slate-700/50"></div>
+                
+                {/* NEXT 10 MIN */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-2 font-medium">NEXT 10 MIN</div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`w-2.5 h-2.5 rounded-full ${getTurbulenceColorClass(conditions.next10Min.level)} shadow-[0_0_6px_rgba(255,255,255,0.3)]`}></span>
+                    <span className="text-sm text-gray-200 font-medium">{conditions.next10Min.description}</span>
+                  </div>
+                  <div className="text-xs text-gray-400">{conditions.next10Min.detail}</div>
+                </div>
+                
+                {/* Visual divider on desktop */}
+                <div className="hidden sm:block w-px h-14 bg-slate-700/50"></div>
+                
+                {/* LATER */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-2 font-medium">LATER</div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={`w-2.5 h-2.5 rounded-full ${getTurbulenceColorClass(conditions.later.level)} shadow-[0_0_6px_rgba(255,255,255,0.3)]`}></span>
+                    <span className="text-sm text-gray-200 font-medium">{conditions.later.description}</span>
+                  </div>
+                  <div className="text-xs text-gray-400">{conditions.later.detail}</div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* Stability Indicator - Shows when no changes for 5+ minutes */}
         <div 
           className={`
-            mt-3 overflow-hidden transition-all duration-500 ease-in-out
-            ${showStabilityIndicator ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0'}
+            overflow-hidden transition-all duration-500 ease-in-out
+            ${showStabilityIndicator ? 'max-h-20 opacity-100 mb-8' : 'max-h-0 opacity-0'}
           `}
         >
-          <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-slate-800/30 to-sky-900/20 rounded-lg border border-slate-700/30 backdrop-blur-sm">
-            {/* Steady icon */}
+          <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-slate-800/30 to-sky-900/20 rounded-2xl border border-slate-700/30 backdrop-blur-sm">
             <div className="flex items-center justify-center w-6 h-6">
               <svg 
                 className="w-4 h-4 text-sky-400/70" 
@@ -1393,8 +1339,6 @@ export default function FlightStatus() {
                 />
               </svg>
             </div>
-            
-            {/* Message text */}
             <p className="text-xs text-gray-400 flex-1">
               <span className="inline-flex items-center gap-1">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-gray-400/50 animate-pulse" />
@@ -1404,78 +1348,107 @@ export default function FlightStatus() {
           </div>
         </div>
 
-        {/* Summary status */}
-        <div className="mt-3 text-sm text-gray-300">
-          {getTurbulenceSummary()}
+        {/* Bump Meter - Critical Visual Information */}
+        <div className="mb-8">
+          <BumpMeter 
+            currentLevel={
+              enhancedTurbulenceReport?.currentConditions.overall === 'severe' || 
+              enhancedTurbulenceReport?.currentConditions.overall === 'extreme' ||
+              turbulenceData?.level === 'severe' || 
+              turbulenceData?.level === 'extreme' ? 'severe' :
+              enhancedTurbulenceReport?.currentConditions.overall === 'moderate' ||
+              turbulenceData?.level === 'moderate' ? 'moderate' :
+              enhancedTurbulenceReport?.currentConditions.overall === 'light' ||
+              turbulenceData?.level === 'light' ? 'light' : 
+              'smooth'
+            }
+          />
         </div>
 
-        {/* Autopilot & Redundancy Status Pills */}
-        <div className="flex flex-wrap gap-2 mt-4 mb-4">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/[0.02] rounded-full border border-emerald-900/30">
-            <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="text-xs text-gray-300">Autopilot flying</span>
-          </div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/[0.02] rounded-full border border-emerald-900/30">
-            <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="text-xs text-gray-300">All critical systems normal</span>
-          </div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/[0.02] rounded-full border border-emerald-900/30">
-            <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="text-xs text-gray-300">Multiple backups ready</span>
-          </div>
-        </div>
-
-        {/* Turbulence Conditions Strip */}
-        <div className="mt-6 mb-6 p-4 bg-white/[0.03] rounded-2xl border border-slate-800/50">
-          {(() => {
-            const conditions = getTurbulenceConditions();
-            return (
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                {/* NOW */}
-                <div className="flex-1 min-w-0">
-                  <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">NOW</div>
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${getTurbulenceColorClass(conditions.now.level)} shadow-[0_0_4px_rgba(255,255,255,0.2)]`}></span>
-                    <span className="text-sm text-gray-200 font-medium">{conditions.now.description}</span>
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">{conditions.now.detail}</div>
-                </div>
-                
-                {/* Divider */}
-                <div className="hidden sm:block w-px h-12 bg-slate-700/50"></div>
-                
-                {/* NEXT 10 MIN */}
-                <div className="flex-1 min-w-0">
-                  <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">NEXT 10 MIN</div>
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${getTurbulenceColorClass(conditions.next10Min.level)} shadow-[0_0_4px_rgba(255,255,255,0.2)]`}></span>
-                    <span className="text-sm text-gray-200 font-medium">{conditions.next10Min.description}</span>
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">{conditions.next10Min.detail}</div>
-                </div>
-                
-                {/* Divider */}
-                <div className="hidden sm:block w-px h-12 bg-slate-700/50"></div>
-                
-                {/* LATER */}
-                <div className="flex-1 min-w-0">
-                  <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">LATER</div>
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${getTurbulenceColorClass(conditions.later.level)} shadow-[0_0_4px_rgba(255,255,255,0.2)]`}></span>
-                    <span className="text-sm text-gray-200 font-medium">{conditions.later.description}</span>
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">{conditions.later.detail}</div>
-                </div>
+        {/* Normality Score Chip */}
+        {(() => {
+          const normalityData = getNormalityScore(departureAirport, arrivalAirport, phase);
+          return (
+            <div className="mb-8 flex flex-wrap items-center gap-3">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/[0.04] rounded-full border border-slate-700/50 backdrop-blur-sm">
+                <span className="text-xs text-gray-400">Normality</span>
+                <span className="text-xs text-gray-400">·</span>
+                <span className="text-sm text-sky-300 font-medium">{normalityData.score.toFixed(1)}/5</span>
+                <span className="text-xs text-gray-400">·</span>
+                <span className="text-xs text-gray-300">{normalityData.description}</span>
               </div>
-            );
-          })()}
-        </div>
+              <p className="text-xs text-gray-400 italic">
+                {normalityData.score >= 4 ? "Everything happening is routine" : 
+                 normalityData.score >= 3 ? "Standard conditions for this route" :
+                 normalityData.score >= 2 ? "Less common but still normal" : 
+                 "Unusual conditions but plane designed for this"}
+              </p>
+            </div>
+          );
+        })()}
+
+        {/* Micro-Task Focus Suggestion Tile - "FOR THE NEXT MINUTE" */}
+        {currentSuggestion && (
+          <div className="mb-8">
+            <div className="bg-white/[0.04] border border-slate-800/50 rounded-3xl p-6 backdrop-blur-sm transition-all duration-300 hover:bg-white/[0.05]">
+              {/* Header with soft gradient accent */}
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-400/20 to-emerald-400/20 flex items-center justify-center">
+                  <span className="text-lg">🧘</span>
+                </div>
+                <h3 className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-400/80">
+                  For the next minute
+                </h3>
+              </div>
+              
+              {/* Suggestion content */}
+              <div className="space-y-3">
+                <p className="text-base leading-relaxed text-gray-200">
+                  {currentSuggestion.text}
+                </p>
+                
+                {/* Visual breathing guide (appears for turbulence) */}
+                {(turbulenceData?.level === 'moderate' || turbulenceData?.level === 'severe') && (
+                  <div className="mt-4 p-3 bg-white/[0.02] rounded-xl border border-white/5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+                      <span className="text-xs text-gray-400 uppercase tracking-wider">
+                        Breathing guide
+                      </span>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="flex-1 h-2 rounded-full bg-gradient-to-r from-sky-400/30 to-sky-400/10 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-sky-400/60 to-transparent animate-breathe" />
+                      </div>
+                    </div>
+                    <div className="flex justify-between mt-1 text-[10px] text-gray-500">
+                      <span>Breathe in</span>
+                      <span>Hold</span>
+                      <span>Breathe out</span>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Optional icon accent */}
+                {currentSuggestion.icon && (
+                  <div className="flex justify-end">
+                    <span className="text-2xl opacity-50">{currentSuggestion.icon}</span>
+                  </div>
+                )}
+              </div>
+              
+              {/* Subtle footer */}
+              <div className="mt-4 pt-3 border-t border-white/5">
+                <p className="text-[10px] text-gray-500 uppercase tracking-wider">
+                  {phase === 'cruise' ? 'Steady as she goes' : 
+                   phase === 'takeoff' || phase === 'climb' ? 'Climbing smoothly' :
+                   phase === 'descent' || phase === 'landing' ? 'Returning to earth' :
+                   'Preparing for journey'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Accordion sections */}
         <div className="mt-6 space-y-3">

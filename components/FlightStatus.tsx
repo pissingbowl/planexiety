@@ -5,6 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { FlightPhaseWeirdThings } from "./FlightPhaseWeirdThings";
 import { AccordionSection } from "./AccordionSection";
 import { FlightInput } from "./FlightInput";
+import { TurbulenceTooltip } from "./TurbulenceTooltip";
 import type { FlightPhase } from "@/lib/flightPhaseEvents";
 import { 
   searchFlight, 
@@ -803,9 +804,11 @@ export default function FlightStatus() {
                                       }`}>
                                         {spot.intensity.toUpperCase()}
                                       </span>
-                                      <span className="text-xs text-slate-500">
-                                        {spot.type}
-                                      </span>
+                                      <TurbulenceTooltip 
+                                        type={spot.type} 
+                                        className="text-xs text-slate-500"
+                                        showIcon={true}
+                                      />
                                       <span className="text-[10px] text-slate-600">
                                         ({spot.source})
                                       </span>

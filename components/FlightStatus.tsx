@@ -420,6 +420,148 @@ export default function FlightStatus() {
     return turbulenceData.summary;
   };
   
+  // Types for turbulence conditions
+  type TurbulenceLevel = "smooth" | "light" | "moderate" | "severe";
+  
+  interface TurbulenceCondition {
+    level: TurbulenceLevel;
+    description: string;
+    detail: string;
+  }
+  
+  // Function to derive turbulence conditions based on phase and data
+  const getTurbulenceConditions = (): { now: TurbulenceCondition; next10Min: TurbulenceCondition; later: TurbulenceCondition } => {
+    // Determine base conditions from turbulence data
+    const currentLevel: TurbulenceLevel = turbulenceData?.level === 'severe' || turbulenceData?.level === 'extreme' ? 'severe' :
+                                           turbulenceData?.level === 'moderate' ? 'moderate' :
+                                           turbulenceData?.level === 'light' ? 'light' : 'smooth';
+    
+    // Phase-specific conditions
+    if (phase === "gate" || phase === "taxi") {
+      return {
+        now: {
+          level: "smooth",
+          description: "On the ground",
+          detail: "Preparing for departure"
+        },
+        next10Min: {
+          level: "smooth",
+          description: "Taxi & lineup",
+          detail: "Rolling to runway"
+        },
+        later: {
+          level: currentLevel,
+          description: currentLevel === "smooth" ? "Smooth climb expected" : 
+                      currentLevel === "light" ? "Light bumps in climb" :
+                      currentLevel === "moderate" ? "Some chop during climb" : "Bumpy climb ahead",
+          detail: `Through ${Math.round(flightData?.baro_altitude ? flightData.baro_altitude * 3.28084 / 1000 : 10)},000ft`
+        }
+      };
+    } else if (phase === "takeoff" || phase === "climb") {
+      return {
+        now: {
+          level: phase === "takeoff" ? "light" : currentLevel,
+          description: phase === "takeoff" ? "Normal takeoff bumps" : 
+                      currentLevel === "smooth" ? "Smooth climb" :
+                      currentLevel === "light" ? "Light turbulence" : 
+                      currentLevel === "moderate" ? "Moderate chop" : "Bumpy conditions",
+          detail: phase === "takeoff" ? "Climbing through low altitude" : `Passing ${Math.round((flightData?.baro_altitude || 5000) * 3.28084 / 1000)},000ft`
+        },
+        next10Min: {
+          level: currentLevel,
+          description: currentLevel === "smooth" ? "Continuing smooth" :
+                      currentLevel === "light" ? "Light chop ahead" :
+                      currentLevel === "moderate" ? "Moderate bumps" : "Stay seated",
+          detail: enhancedTurbulenceReport?.hotSpots[0]?.timeToEncounter && enhancedTurbulenceReport.hotSpots[0].timeToEncounter <= 10 
+                  ? enhancedTurbulenceReport.hotSpots[0].description 
+                  : "Climbing to cruise"
+        },
+        later: {
+          level: currentLevel,
+          description: "Cruise conditions",
+          detail: `Level at ${Math.round(35000 / 1000)},000ft`
+        }
+      };
+    } else if (phase === "cruise") {
+      const nextSpot = enhancedTurbulenceReport?.hotSpots.find(s => s.timeToEncounter && s.timeToEncounter <= 10);
+      const laterSpot = enhancedTurbulenceReport?.hotSpots.find(s => s.timeToEncounter && s.timeToEncounter > 10);
+      
+      return {
+        now: {
+          level: currentLevel,
+          description: currentLevel === "smooth" ? "Smooth ride" :
+                      currentLevel === "light" ? "Light bumps" :
+                      currentLevel === "moderate" ? "Moderate turbulence" : "Rough air",
+          detail: `Cruising at ${Math.round((flightData?.baro_altitude || 35000) * 3.28084 / 1000)},000ft`
+        },
+        next10Min: {
+          level: nextSpot ? (nextSpot.intensity === 'severe' || nextSpot.intensity === 'extreme' ? 'severe' :
+                            nextSpot.intensity === 'moderate' ? 'moderate' : 'light') : currentLevel,
+          description: nextSpot ? `${nextSpot.type}` : "Continuing cruise",
+          detail: nextSpot ? `${nextSpot.description}` : "Steady conditions"
+        },
+        later: {
+          level: laterSpot ? (laterSpot.intensity === 'severe' || laterSpot.intensity === 'extreme' ? 'severe' :
+                             laterSpot.intensity === 'moderate' ? 'moderate' : 'light') : "smooth",
+          description: "Descent preparation",
+          detail: `Approaching ${arrivalAirport}`
+        }
+      };
+    } else if (phase === "descent" || phase === "landing") {
+      return {
+        now: {
+          level: currentLevel,
+          description: phase === "landing" ? "Final approach" : 
+                      currentLevel === "smooth" ? "Smooth descent" :
+                      currentLevel === "light" ? "Light turbulence" : "Bumpy descent",
+          detail: `Descending through ${Math.round((flightData?.baro_altitude || 10000) * 3.28084 / 1000)},000ft`
+        },
+        next10Min: {
+          level: phase === "landing" ? "light" : currentLevel,
+          description: phase === "landing" ? "Landing sequence" : "Continuing descent",
+          detail: phase === "landing" ? `Runway in sight` : "Approach preparation"
+        },
+        later: {
+          level: "smooth",
+          description: "At the gate",
+          detail: `Welcome to ${arrivalAirport}`
+        }
+      };
+    }
+    
+    // Default fallback
+    return {
+      now: {
+        level: currentLevel,
+        description: currentLevel === "smooth" ? "Smooth" : 
+                    currentLevel === "light" ? "Light bumps" :
+                    currentLevel === "moderate" ? "Moderate bumps" : "Rough air",
+        detail: "Current conditions"
+      },
+      next10Min: {
+        level: currentLevel,
+        description: "Steady conditions",
+        detail: "No significant changes"
+      },
+      later: {
+        level: "smooth",
+        description: "Expected smooth",
+        detail: "Rest of flight"
+      }
+    };
+  };
+  
+  // Get color class for turbulence level
+  const getTurbulenceColorClass = (level: TurbulenceLevel): string => {
+    switch(level) {
+      case "smooth": return "bg-emerald-400/60";
+      case "light": return "bg-sky-400/60";
+      case "moderate": return "bg-amber-400/60";
+      case "severe": return "bg-orange-400/60";
+      default: return "bg-emerald-400/60";
+    }
+  };
+  
   // Define sections array for accordions
   const sections = [
     {
@@ -640,6 +782,52 @@ export default function FlightStatus() {
         {/* Summary status */}
         <div className="mt-3 text-sm text-gray-300">
           {getTurbulenceSummary()}
+        </div>
+
+        {/* Turbulence Conditions Strip */}
+        <div className="mt-6 mb-6 p-4 bg-white/[0.03] rounded-2xl border border-slate-800/50">
+          {(() => {
+            const conditions = getTurbulenceConditions();
+            return (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                {/* NOW */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">NOW</div>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${getTurbulenceColorClass(conditions.now.level)} shadow-[0_0_4px_rgba(255,255,255,0.2)]`}></span>
+                    <span className="text-sm text-gray-200 font-medium">{conditions.now.description}</span>
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">{conditions.now.detail}</div>
+                </div>
+                
+                {/* Divider */}
+                <div className="hidden sm:block w-px h-12 bg-slate-700/50"></div>
+                
+                {/* NEXT 10 MIN */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">NEXT 10 MIN</div>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${getTurbulenceColorClass(conditions.next10Min.level)} shadow-[0_0_4px_rgba(255,255,255,0.2)]`}></span>
+                    <span className="text-sm text-gray-200 font-medium">{conditions.next10Min.description}</span>
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">{conditions.next10Min.detail}</div>
+                </div>
+                
+                {/* Divider */}
+                <div className="hidden sm:block w-px h-12 bg-slate-700/50"></div>
+                
+                {/* LATER */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">LATER</div>
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${getTurbulenceColorClass(conditions.later.level)} shadow-[0_0_4px_rgba(255,255,255,0.2)]`}></span>
+                    <span className="text-sm text-gray-200 font-medium">{conditions.later.description}</span>
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">{conditions.later.detail}</div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Accordion sections */}

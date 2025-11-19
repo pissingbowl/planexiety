@@ -78,6 +78,7 @@ const DEMO_ROUTES: Record<string, { from: string; to: string }> = {
 // Common routes by airline for fallback detection
 const COMMON_ROUTES_BY_AIRLINE: Record<string, Array<{ from: string; to: string; flightRanges?: number[] }>> = {
   "UA": [
+    { from: "DEN", to: "ORD", flightRanges: [300, 399] }, // Includes UA 377
     { from: "ORD", to: "LAX", flightRanges: [1000, 1999] },
     { from: "SFO", to: "EWR", flightRanges: [2000, 2999] },
     { from: "DEN", to: "ORD", flightRanges: [3000, 3999] },

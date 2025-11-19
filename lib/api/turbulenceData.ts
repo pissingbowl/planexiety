@@ -66,6 +66,83 @@ export interface TurbulenceAssessment {
   recommendations: string[];
 }
 
+export interface RoutePoint {
+  lat: number;
+  lon: number;
+  distance: number; // nm from departure
+  bearing: number; // degrees
+}
+
+export interface TurbulenceHotSpot {
+  location: { lat: number; lon: number };
+  altitudeRange: { min: number; max: number };
+  intensity: 'light' | 'moderate' | 'severe' | 'extreme';
+  type: string;
+  source: 'PIREP' | 'SIGMET' | 'AIRMET' | 'Weather' | 'JetStream';
+  distance: number; // nm from current position
+  timeToEncounter?: number; // minutes
+  confidence: 'low' | 'medium' | 'high';
+  description: string;
+}
+
+export interface EnhancedTurbulenceReport {
+  // Current conditions along route
+  currentConditions: {
+    overall: 'smooth' | 'light' | 'moderate' | 'severe' | 'extreme';
+    recentPIREPs: PIREP[];
+    activeSIGMETs: SIGMET[];
+    activeAIRMETs: AIRMET[];
+  };
+  
+  // Forecast based on weather patterns
+  forecast: {
+    takeoff: { intensity: string; probability: number };
+    climb: { intensity: string; probability: number };
+    cruise: { intensity: string; probability: number };
+    descent: { intensity: string; probability: number };
+    approach: { intensity: string; probability: number };
+  };
+  
+  // Specific areas of concern
+  hotSpots: TurbulenceHotSpot[];
+  
+  // Altitude recommendations
+  altitudeRecommendations: {
+    optimal: number; // feet
+    avoid: Array<{ min: number; max: number; reason: string }>;
+    alternates: Array<{ altitude: number; conditions: string }>;
+  };
+  
+  // Overall confidence in analysis
+  confidence: {
+    level: 'low' | 'medium' | 'high';
+    dataPoints: number;
+    coverage: number; // percentage of route covered by data
+    age: string; // how recent the data is
+  };
+  
+  // Summary for display
+  summary: string;
+  
+  // Detailed recommendations
+  recommendations: string[];
+}
+
+export interface RouteCorridorOptions {
+  widthNm: number; // width of corridor in nautical miles
+  altitudeMin: number; // minimum altitude in feet
+  altitudeMax: number; // maximum altitude in feet
+}
+
+export interface JetStreamData {
+  present: boolean;
+  altitude: number; // feet
+  windSpeed: number; // knots
+  direction: number; // degrees
+  intersectsRoute: boolean;
+  turbulencePotential: 'low' | 'moderate' | 'high';
+}
+
 // Cache turbulence data
 const turbulenceCache = new Map<string, { data: any; timestamp: number }>();
 const TURBULENCE_CACHE_DURATION = 600000; // 10 minutes
@@ -459,4 +536,563 @@ export function formatPIREP(pirep: PIREP): string {
   result += ` (${minutesAgo} min ago)`;
   
   return result;
+}
+
+/**
+ * Convert kilometers to nautical miles
+ */
+function kmToNm(km: number): number {
+  return km * 0.539957;
+}
+
+/**
+ * Convert nautical miles to kilometers
+ */
+function nmToKm(nm: number): number {
+  return nm * 1.852;
+}
+
+/**
+ * Calculate great circle route between two airports
+ * Returns waypoints every 50nm along the route
+ */
+export function calculateGreatCircleRoute(
+  depLat: number,
+  depLon: number,
+  arrLat: number,
+  arrLon: number,
+  intervalNm: number = 50
+): RoutePoint[] {
+  const route: RoutePoint[] = [];
+  
+  // Convert to radians
+  const lat1 = depLat * Math.PI / 180;
+  const lon1 = depLon * Math.PI / 180;
+  const lat2 = arrLat * Math.PI / 180;
+  const lon2 = arrLon * Math.PI / 180;
+  
+  // Calculate total distance
+  const totalDistanceKm = calculateDistance(depLat, depLon, arrLat, arrLon);
+  const totalDistanceNm = kmToNm(totalDistanceKm);
+  
+  // Calculate initial bearing
+  const dLon = lon2 - lon1;
+  const y = Math.sin(dLon) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+  const initialBearing = Math.atan2(y, x) * 180 / Math.PI;
+  const normalizedBearing = (initialBearing + 360) % 360;
+  
+  // Add departure point
+  route.push({
+    lat: depLat,
+    lon: depLon,
+    distance: 0,
+    bearing: normalizedBearing
+  });
+  
+  // Calculate intermediate points
+  const numPoints = Math.floor(totalDistanceNm / intervalNm);
+  
+  for (let i = 1; i <= numPoints; i++) {
+    const fraction = (i * intervalNm) / totalDistanceNm;
+    
+    // Calculate intermediate point using great circle interpolation
+    const a = Math.sin((1 - fraction) * Math.acos(Math.sin(lat1) * Math.sin(lat2) + 
+               Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1))) / 
+               Math.sin(Math.acos(Math.sin(lat1) * Math.sin(lat2) + 
+               Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1)));
+    const b = Math.sin(fraction * Math.acos(Math.sin(lat1) * Math.sin(lat2) + 
+               Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1))) / 
+               Math.sin(Math.acos(Math.sin(lat1) * Math.sin(lat2) + 
+               Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1)));
+    
+    const x = a * Math.cos(lat1) * Math.cos(lon1) + b * Math.cos(lat2) * Math.cos(lon2);
+    const y = a * Math.cos(lat1) * Math.sin(lon1) + b * Math.cos(lat2) * Math.sin(lon2);
+    const z = a * Math.sin(lat1) + b * Math.sin(lat2);
+    
+    const lat = Math.atan2(z, Math.sqrt(x * x + y * y)) * 180 / Math.PI;
+    const lon = Math.atan2(y, x) * 180 / Math.PI;
+    
+    route.push({
+      lat,
+      lon,
+      distance: i * intervalNm,
+      bearing: normalizedBearing
+    });
+  }
+  
+  // Add arrival point
+  route.push({
+    lat: arrLat,
+    lon: arrLon,
+    distance: totalDistanceNm,
+    bearing: normalizedBearing
+  });
+  
+  return route;
+}
+
+/**
+ * Check if a point is within a route corridor
+ */
+export function isPointInCorridor(
+  pointLat: number,
+  pointLon: number,
+  route: RoutePoint[],
+  corridorWidthNm: number
+): boolean {
+  // Check distance to each segment of the route
+  for (let i = 0; i < route.length - 1; i++) {
+    const segmentStart = route[i];
+    const segmentEnd = route[i + 1];
+    
+    // Calculate perpendicular distance to segment
+    const distanceToSegment = calculateDistanceToSegment(
+      pointLat,
+      pointLon,
+      segmentStart.lat,
+      segmentStart.lon,
+      segmentEnd.lat,
+      segmentEnd.lon
+    );
+    
+    if (kmToNm(distanceToSegment) <= corridorWidthNm / 2) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+/**
+ * Calculate perpendicular distance from a point to a line segment
+ */
+function calculateDistanceToSegment(
+  pointLat: number,
+  pointLon: number,
+  segmentStartLat: number,
+  segmentStartLon: number,
+  segmentEndLat: number,
+  segmentEndLon: number
+): number {
+  const A = calculateDistance(pointLat, pointLon, segmentStartLat, segmentStartLon);
+  const B = calculateDistance(pointLat, pointLon, segmentEndLat, segmentEndLon);
+  const C = calculateDistance(segmentStartLat, segmentStartLon, segmentEndLat, segmentEndLon);
+  
+  if (C === 0) return A;
+  
+  const s = (A + B + C) / 2;
+  const area = Math.sqrt(Math.max(0, s * (s - A) * (s - B) * (s - C)));
+  const distance = (2 * area) / C;
+  
+  return distance;
+}
+
+/**
+ * Filter PIREPs along a specific route corridor
+ */
+export async function getRoutePIREPs(
+  route: RoutePoint[],
+  options: RouteCorridorOptions
+): Promise<PIREP[]> {
+  // Fetch all PIREPs
+  const allPIREPs = await fetchPIREPs();
+  
+  // Filter PIREPs within route corridor and altitude range
+  const routePIREPs = allPIREPs.filter(pirep => {
+    // Check if PIREP is within the route corridor
+    if (!isPointInCorridor(pirep.latitude, pirep.longitude, route, options.widthNm)) {
+      return false;
+    }
+    
+    // Check altitude
+    if (pirep.altitude_ft_msl < options.altitudeMin || 
+        pirep.altitude_ft_msl > options.altitudeMax) {
+      return false;
+    }
+    
+    return true;
+  });
+  
+  // Sort by proximity to route centerline
+  routePIREPs.sort((a, b) => {
+    const distA = Math.min(...route.map(point => 
+      calculateDistance(a.latitude, a.longitude, point.lat, point.lon)
+    ));
+    const distB = Math.min(...route.map(point => 
+      calculateDistance(b.latitude, b.longitude, point.lat, point.lon)
+    ));
+    return distA - distB;
+  });
+  
+  return routePIREPs;
+}
+
+/**
+ * Analyze jet stream interaction with route
+ */
+export async function analyzeJetStream(
+  route: RoutePoint[],
+  cruiseAltitude: number
+): Promise<JetStreamData> {
+  // Typical jet stream altitudes: 25,000-40,000 feet
+  const jetStreamMinAlt = 25000;
+  const jetStreamMaxAlt = 40000;
+  
+  // Check if cruise altitude is in jet stream range
+  const inJetStreamAltitude = cruiseAltitude >= jetStreamMinAlt && 
+                               cruiseAltitude <= jetStreamMaxAlt;
+  
+  if (!inJetStreamAltitude) {
+    return {
+      present: false,
+      altitude: 0,
+      windSpeed: 0,
+      direction: 0,
+      intersectsRoute: false,
+      turbulencePotential: 'low'
+    };
+  }
+  
+  // For demo purposes, simulate jet stream data
+  // In production, this would fetch actual wind data from aviation weather APIs
+  const jetStreamData: JetStreamData = {
+    present: true,
+    altitude: 35000,
+    windSpeed: 120, // knots - typical jet stream speed
+    direction: 270, // westerly
+    intersectsRoute: true,
+    turbulencePotential: 'moderate'
+  };
+  
+  // Determine turbulence potential based on wind speed
+  if (jetStreamData.windSpeed > 150) {
+    jetStreamData.turbulencePotential = 'high';
+  } else if (jetStreamData.windSpeed > 100) {
+    jetStreamData.turbulencePotential = 'moderate';
+  } else {
+    jetStreamData.turbulencePotential = 'low';
+  }
+  
+  return jetStreamData;
+}
+
+/**
+ * Analyze weather gradients for turbulence potential
+ */
+export function analyzeWeatherGradients(
+  departureMETAR: any,
+  arrivalMETAR: any,
+  routeMETARs: any[]
+): { potential: 'low' | 'moderate' | 'high'; reasons: string[] } {
+  const reasons: string[] = [];
+  let score = 0;
+  
+  // Check temperature gradients
+  if (departureMETAR && arrivalMETAR) {
+    const tempDiff = Math.abs(departureMETAR.temp_c - arrivalMETAR.temp_c);
+    if (tempDiff > 20) {
+      reasons.push('Significant temperature gradient along route');
+      score += 3;
+    } else if (tempDiff > 10) {
+      reasons.push('Moderate temperature gradient');
+      score += 1;
+    }
+  }
+  
+  // Check wind differences
+  if (departureMETAR?.wind_speed_kt && arrivalMETAR?.wind_speed_kt) {
+    const windDiff = Math.abs(departureMETAR.wind_speed_kt - arrivalMETAR.wind_speed_kt);
+    if (windDiff > 30) {
+      reasons.push('Strong wind gradient');
+      score += 3;
+    } else if (windDiff > 15) {
+      reasons.push('Moderate wind gradient');
+      score += 2;
+    }
+  }
+  
+  // Check for frontal activity
+  const hasThunderstorms = [departureMETAR, arrivalMETAR, ...routeMETARs].some(
+    m => m?.weather_string?.includes('TS')
+  );
+  if (hasThunderstorms) {
+    reasons.push('Thunderstorms along route');
+    score += 5;
+  }
+  
+  // Determine potential
+  let potential: 'low' | 'moderate' | 'high';
+  if (score >= 6) {
+    potential = 'high';
+  } else if (score >= 3) {
+    potential = 'moderate';
+  } else {
+    potential = 'low';
+  }
+  
+  if (reasons.length === 0) {
+    reasons.push('Stable weather conditions along route');
+  }
+  
+  return { potential, reasons };
+}
+
+/**
+ * Generate comprehensive turbulence report for a flight route
+ */
+export async function generateEnhancedTurbulenceReport(
+  departureAirport: { code: string; lat: number; lon: number },
+  arrivalAirport: { code: string; lat: number; lon: number },
+  currentPosition: { lat: number; lon: number; altitude: number },
+  cruiseAltitude: number,
+  groundSpeed: number = 450 // knots
+): Promise<EnhancedTurbulenceReport> {
+  try {
+    // Calculate route
+    const route = calculateGreatCircleRoute(
+      departureAirport.lat,
+      departureAirport.lon,
+      arrivalAirport.lat,
+      arrivalAirport.lon
+    );
+    
+    // Define route corridor
+    const corridorOptions: RouteCorridorOptions = {
+      widthNm: 100,
+      altitudeMin: 0,
+      altitudeMax: 45000
+    };
+    
+    // Fetch all data in parallel
+    const [routePIREPs, sigmets, airmets, jetStream] = await Promise.all([
+      getRoutePIREPs(route, corridorOptions),
+      fetchSIGMETs(),
+      fetchAIRMETs(),
+      analyzeJetStream(route, cruiseAltitude)
+    ]);
+    
+    // Filter turbulence-related data
+    const turbulencePIREPs = routePIREPs.filter(p => 
+      p.turbulence_intensity && p.turbulence_intensity !== 'NEG'
+    );
+    
+    const turbulenceSIGMETs = sigmets.filter(s => 
+      s.hazard?.includes('TURB') || s.hazard?.includes('MTN WAVE')
+    );
+    
+    const turbulenceAIRMETs = airmets.filter(a => 
+      a.hazard?.includes('TURB')
+    );
+    
+    // Identify hot spots
+    const hotSpots: TurbulenceHotSpot[] = [];
+    
+    // Add PIREP-based hot spots
+    turbulencePIREPs.forEach(pirep => {
+      const distance = calculateDistance(
+        currentPosition.lat,
+        currentPosition.lon,
+        pirep.latitude,
+        pirep.longitude
+      );
+      
+      const intensity = mapIntensityToLevel(pirep.turbulence_intensity || 'LGT');
+      
+      hotSpots.push({
+        location: { lat: pirep.latitude, lon: pirep.longitude },
+        altitudeRange: {
+          min: pirep.turbulence_base_ft_msl || pirep.altitude_ft_msl - 2000,
+          max: pirep.turbulence_top_ft_msl || pirep.altitude_ft_msl + 2000
+        },
+        intensity,
+        type: TURBULENCE_TYPE_MAP[pirep.turbulence_type || ''] || 'General',
+        source: 'PIREP',
+        distance: kmToNm(distance),
+        timeToEncounter: groundSpeed > 0 ? (kmToNm(distance) / groundSpeed) * 60 : undefined,
+        confidence: 'high',
+        description: formatPIREP(pirep)
+      });
+    });
+    
+    // Add jet stream hot spot if applicable
+    if (jetStream.intersectsRoute && jetStream.turbulencePotential !== 'low') {
+      hotSpots.push({
+        location: { lat: currentPosition.lat, lon: currentPosition.lon },
+        altitudeRange: {
+          min: jetStream.altitude - 3000,
+          max: jetStream.altitude + 3000
+        },
+        intensity: jetStream.turbulencePotential === 'high' ? 'severe' : 'moderate',
+        type: 'Clear Air Turbulence',
+        source: 'JetStream',
+        distance: 0,
+        confidence: 'medium',
+        description: `Jet stream at FL${Math.round(jetStream.altitude/100)}, winds ${jetStream.windSpeed}kt`
+      });
+    }
+    
+    // Sort hot spots by distance
+    hotSpots.sort((a, b) => a.distance - b.distance);
+    
+    // Determine current conditions
+    const nearbyTurbulence = turbulencePIREPs.filter(p => {
+      const distance = calculateDistance(currentPosition.lat, currentPosition.lon, p.latitude, p.longitude);
+      const altDiff = Math.abs(currentPosition.altitude - p.altitude_ft_msl);
+      return kmToNm(distance) < 50 && altDiff < 5000;
+    });
+    
+    let currentOverall: EnhancedTurbulenceReport['currentConditions']['overall'] = 'smooth';
+    if (nearbyTurbulence.some(p => p.turbulence_intensity === 'SEV' || p.turbulence_intensity === 'EXTRM')) {
+      currentOverall = 'severe';
+    } else if (nearbyTurbulence.some(p => p.turbulence_intensity === 'MOD')) {
+      currentOverall = 'moderate';
+    } else if (nearbyTurbulence.some(p => p.turbulence_intensity === 'LGT')) {
+      currentOverall = 'light';
+    }
+    
+    // Generate forecast
+    const forecast = {
+      takeoff: { intensity: 'Light', probability: 20 },
+      climb: { intensity: 'Light to Moderate', probability: 30 },
+      cruise: { 
+        intensity: jetStream.turbulencePotential === 'high' ? 'Moderate' : 'Light',
+        probability: jetStream.turbulencePotential === 'high' ? 60 : 25
+      },
+      descent: { intensity: 'Light', probability: 25 },
+      approach: { intensity: 'Light', probability: 20 }
+    };
+    
+    // Generate altitude recommendations
+    const altitudeRecommendations = {
+      optimal: cruiseAltitude,
+      avoid: [] as Array<{ min: number; max: number; reason: string }>,
+      alternates: [] as Array<{ altitude: number; conditions: string }>
+    };
+    
+    // Add jet stream avoidance if necessary
+    if (jetStream.turbulencePotential === 'high') {
+      altitudeRecommendations.avoid.push({
+        min: jetStream.altitude - 3000,
+        max: jetStream.altitude + 3000,
+        reason: 'Strong jet stream turbulence'
+      });
+      
+      altitudeRecommendations.alternates.push({
+        altitude: jetStream.altitude - 5000,
+        conditions: 'Below jet stream, smoother conditions'
+      });
+    }
+    
+    // Calculate confidence metrics
+    const dataAge = turbulencePIREPs.length > 0 
+      ? Math.round((Date.now() - new Date(turbulencePIREPs[0].observation_time).getTime()) / 60000)
+      : 999;
+    
+    const confidence = {
+      level: 'medium' as const,
+      dataPoints: turbulencePIREPs.length + turbulenceSIGMETs.length + turbulenceAIRMETs.length,
+      coverage: Math.min(100, (turbulencePIREPs.length * 10)),
+      age: dataAge < 30 ? 'Very recent' : dataAge < 60 ? 'Recent' : dataAge < 180 ? 'Moderate' : 'Dated'
+    };
+    
+    if (confidence.dataPoints > 10 && dataAge < 30) {
+      confidence.level = 'high';
+    } else if (confidence.dataPoints < 3 || dataAge > 180) {
+      confidence.level = 'low';
+    }
+    
+    // Generate summary
+    let summary = '';
+    if (currentOverall === 'severe' || currentOverall === 'extreme') {
+      summary = 'Significant turbulence reported along your route. Expect rough conditions.';
+    } else if (currentOverall === 'moderate') {
+      summary = 'Moderate turbulence likely. Keep seatbelts fastened and secure loose items.';
+    } else if (currentOverall === 'light') {
+      summary = 'Light chop expected, typical for this route and altitude.';
+    } else {
+      summary = 'Smooth conditions anticipated for most of the flight.';
+    }
+    
+    if (hotSpots.length > 0) {
+      summary += ` ${hotSpots.length} area${hotSpots.length > 1 ? 's' : ''} of potential turbulence identified.`;
+    }
+    
+    // Generate recommendations
+    const recommendations: string[] = [];
+    
+    if (currentOverall === 'severe' || currentOverall === 'extreme') {
+      recommendations.push('Remain seated with seatbelt fastened');
+      recommendations.push('Flight attendants may suspend service');
+      recommendations.push('Secure all loose items immediately');
+    } else if (currentOverall === 'moderate') {
+      recommendations.push('Keep seatbelt fastened when seated');
+      recommendations.push('Use caution when moving about the cabin');
+    } else {
+      recommendations.push('Normal precautions - keep seatbelt loosely fastened');
+    }
+    
+    if (jetStream.intersectsRoute && jetStream.turbulencePotential !== 'low') {
+      recommendations.push(`Expect clear air turbulence near FL${Math.round(cruiseAltitude/100)}`);
+    }
+    
+    return {
+      currentConditions: {
+        overall: currentOverall,
+        recentPIREPs: turbulencePIREPs.slice(0, 5),
+        activeSIGMETs: turbulenceSIGMETs,
+        activeAIRMETs: turbulenceAIRMETs
+      },
+      forecast,
+      hotSpots: hotSpots.slice(0, 5), // Limit to top 5
+      altitudeRecommendations,
+      confidence,
+      summary,
+      recommendations
+    };
+    
+  } catch (error) {
+    console.error('Error generating enhanced turbulence report:', error);
+    
+    // Return default report
+    return {
+      currentConditions: {
+        overall: 'smooth',
+        recentPIREPs: [],
+        activeSIGMETs: [],
+        activeAIRMETs: []
+      },
+      forecast: {
+        takeoff: { intensity: 'Light', probability: 15 },
+        climb: { intensity: 'Light', probability: 20 },
+        cruise: { intensity: 'None to Light', probability: 10 },
+        descent: { intensity: 'Light', probability: 20 },
+        approach: { intensity: 'Light', probability: 15 }
+      },
+      hotSpots: [],
+      altitudeRecommendations: {
+        optimal: cruiseAltitude,
+        avoid: [],
+        alternates: []
+      },
+      confidence: {
+        level: 'low',
+        dataPoints: 0,
+        coverage: 0,
+        age: 'Unknown'
+      },
+      summary: 'Limited turbulence data available. Expect typical conditions for this route.',
+      recommendations: ['Keep seatbelt fastened when seated as standard precaution']
+    };
+  }
+}
+
+/**
+ * Map intensity string to level
+ */
+function mapIntensityToLevel(intensity: string): 'light' | 'moderate' | 'severe' | 'extreme' {
+  if (intensity === 'EXTRM') return 'extreme';
+  if (intensity === 'SEV' || intensity === 'MOD-SEV') return 'severe';
+  if (intensity === 'MOD' || intensity === 'LGT-MOD') return 'moderate';
+  return 'light';
 }

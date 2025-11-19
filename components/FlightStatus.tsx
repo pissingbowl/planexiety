@@ -25,7 +25,10 @@ import {
 import { 
   assessFlightTurbulence,
   formatPIREP,
-  type TurbulenceAssessment 
+  generateEnhancedTurbulenceReport,
+  analyzeWeatherGradients,
+  type TurbulenceAssessment,
+  type EnhancedTurbulenceReport
 } from "@/lib/api/turbulenceData";
 
 // --- Tiny inline flight map ---
@@ -161,12 +164,13 @@ export default function FlightStatus() {
   
   // Turbulence state
   const [turbulenceData, setTurbulenceData] = useState<TurbulenceAssessment | null>(null);
+  const [enhancedTurbulenceReport, setEnhancedTurbulenceReport] = useState<EnhancedTurbulenceReport | null>(null);
   
   // Nearby flights state
   const [nearbyFlights, setNearbyFlights] = useState<FlightData[]>([]);
   
   // UI state
-  const [openAccordion, setOpenAccordion] = useState<string | null>(null);
+  const [openAccordion, setOpenAccordion] = useState<string | null>('TURBULENCE'); // Show turbulence analysis by default
   const [nerdOpen, setNerdOpen] = useState(false);
   
   // Client-side arrival time state to prevent hydration mismatch
@@ -223,8 +227,34 @@ export default function FlightStatus() {
     dep: string, 
     arr: string
   ) => {
+    // Fetch basic assessment
     const assessment = await assessFlightTurbulence(lat, lon, alt, dep, arr);
     setTurbulenceData(assessment);
+    
+    // Generate enhanced report if we have airport data
+    const depAirport = AIRPORTS[dep];
+    const arrAirport = AIRPORTS[arr];
+    
+    if (depAirport && arrAirport) {
+      const enhancedReport = await generateEnhancedTurbulenceReport(
+        { code: dep, lat: depAirport.lat, lon: depAirport.lon },
+        { code: arr, lat: arrAirport.lat, lon: arrAirport.lon },
+        { lat, lon, altitude: alt },
+        35000, // Default cruise altitude
+        450 // Default ground speed in knots
+      );
+      setEnhancedTurbulenceReport(enhancedReport);
+      
+      // Analyze weather gradients if we have weather data
+      if (weatherData) {
+        const gradients = analyzeWeatherGradients(
+          weatherData.departure.metar,
+          weatherData.arrival.metar,
+          [] // Could add route METARs here
+        );
+        console.log('Weather gradient analysis:', gradients);
+      }
+    }
   };
   
   // Fetch nearby flights
@@ -604,9 +634,219 @@ export default function FlightStatus() {
               {/* TURBULENCE ANALYSIS Section */}
               {section.id === 'TURBULENCE' && (
                 <div className="space-y-3">
-                  {turbulenceData ? (
+                  {enhancedTurbulenceReport ? (
                     <>
-                      {/* Current Assessment */}
+                      {/* Current Conditions Summary */}
+                      <div className="bg-white/[0.03] rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs uppercase tracking-wider text-slate-400">
+                            Route Analysis
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs px-2 py-1 rounded-full ${
+                              enhancedTurbulenceReport.currentConditions.overall === 'severe' || 
+                              enhancedTurbulenceReport.currentConditions.overall === 'extreme' ? 'bg-red-500/20 text-red-400' :
+                              enhancedTurbulenceReport.currentConditions.overall === 'moderate' ? 'bg-orange-500/20 text-orange-400' :
+                              enhancedTurbulenceReport.currentConditions.overall === 'light' ? 'bg-yellow-500/20 text-yellow-400' :
+                              'bg-green-500/20 text-green-400'
+                            }`}>
+                              {enhancedTurbulenceReport.currentConditions.overall.toUpperCase()}
+                            </span>
+                            <span className={`text-xs px-2 py-1 rounded-full border ${
+                              enhancedTurbulenceReport.confidence.level === 'high' ? 'border-green-500/30 text-green-400' :
+                              enhancedTurbulenceReport.confidence.level === 'medium' ? 'border-yellow-500/30 text-yellow-400' :
+                              'border-red-500/30 text-red-400'
+                            }`}>
+                              {enhancedTurbulenceReport.confidence.level.toUpperCase()} CONFIDENCE
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-slate-300 mb-3">{enhancedTurbulenceReport.summary}</p>
+                        
+                        {/* Data Quality Indicators */}
+                        <div className="flex gap-4 text-xs text-slate-400">
+                          <span>{enhancedTurbulenceReport.confidence.dataPoints} reports</span>
+                          <span>{enhancedTurbulenceReport.confidence.coverage}% route coverage</span>
+                          <span>Data: {enhancedTurbulenceReport.confidence.age}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Phase-by-Phase Forecast */}
+                      {enhancedTurbulenceReport.forecast && (
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-slate-400 mb-2">
+                            Phase-by-Phase Forecast
+                          </p>
+                          <div className="grid grid-cols-5 gap-2">
+                            {Object.entries(enhancedTurbulenceReport.forecast).map(([phase, data]) => (
+                              <div key={phase} className="bg-white/[0.03] rounded-lg p-2 text-center">
+                                <div className="text-[10px] uppercase text-slate-500 mb-1">
+                                  {phase}
+                                </div>
+                                <div className={`text-xs font-medium ${
+                                  data.intensity.includes('Severe') ? 'text-red-400' :
+                                  data.intensity.includes('Moderate') ? 'text-orange-400' :
+                                  data.intensity.includes('Light') ? 'text-yellow-400' :
+                                  'text-green-400'
+                                }`}>
+                                  {data.intensity}
+                                </div>
+                                <div className="text-[10px] text-slate-500 mt-1">
+                                  {data.probability}%
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Turbulence Hot Spots */}
+                      {enhancedTurbulenceReport.hotSpots.length > 0 && (
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-slate-400 mb-2">
+                            Turbulence Hot Spots Along Route
+                          </p>
+                          <div className="space-y-2">
+                            {enhancedTurbulenceReport.hotSpots.map((spot, idx) => (
+                              <div key={idx} className="bg-white/[0.03] rounded-lg p-2">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                        spot.intensity === 'extreme' ? 'bg-red-600/20 text-red-400' :
+                                        spot.intensity === 'severe' ? 'bg-red-500/20 text-red-400' :
+                                        spot.intensity === 'moderate' ? 'bg-orange-500/20 text-orange-400' :
+                                        'bg-yellow-500/20 text-yellow-400'
+                                      }`}>
+                                        {spot.intensity.toUpperCase()}
+                                      </span>
+                                      <span className="text-xs text-slate-500">
+                                        {spot.type}
+                                      </span>
+                                      <span className="text-[10px] text-slate-600">
+                                        ({spot.source})
+                                      </span>
+                                    </div>
+                                    <p className="text-xs text-slate-300">
+                                      {spot.description}
+                                    </p>
+                                    <div className="flex gap-3 mt-1 text-[10px] text-slate-500">
+                                      <span>FL{Math.round(spot.altitudeRange.min/100)}-{Math.round(spot.altitudeRange.max/100)}</span>
+                                      <span>{spot.distance.toFixed(0)}nm away</span>
+                                      {spot.timeToEncounter && (
+                                        <span>{Math.round(spot.timeToEncounter)} min</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className={`ml-2 text-xs font-semibold ${
+                                    spot.confidence === 'high' ? 'text-green-400' :
+                                    spot.confidence === 'medium' ? 'text-yellow-400' :
+                                    'text-red-400'
+                                  }`}>
+                                    {spot.confidence[0].toUpperCase()}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Altitude Recommendations */}
+                      {enhancedTurbulenceReport.altitudeRecommendations && (
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-slate-400 mb-2">
+                            Altitude Recommendations
+                          </p>
+                          <div className="bg-white/[0.03] rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-slate-400">Optimal Cruise</span>
+                              <span className="text-sm font-mono text-sky-400">
+                                FL{Math.round(enhancedTurbulenceReport.altitudeRecommendations.optimal / 100)}
+                              </span>
+                            </div>
+                            
+                            {enhancedTurbulenceReport.altitudeRecommendations.avoid.length > 0 && (
+                              <div className="mt-2 pt-2 border-t border-white/5">
+                                <p className="text-xs text-red-400 mb-1">Avoid:</p>
+                                {enhancedTurbulenceReport.altitudeRecommendations.avoid.map((range, idx) => (
+                                  <p key={idx} className="text-xs text-slate-400">
+                                    FL{Math.round(range.min/100)}-{Math.round(range.max/100)}: {range.reason}
+                                  </p>
+                                ))}
+                              </div>
+                            )}
+                            
+                            {enhancedTurbulenceReport.altitudeRecommendations.alternates.length > 0 && (
+                              <div className="mt-2 pt-2 border-t border-white/5">
+                                <p className="text-xs text-green-400 mb-1">Alternates:</p>
+                                {enhancedTurbulenceReport.altitudeRecommendations.alternates.map((alt, idx) => (
+                                  <p key={idx} className="text-xs text-slate-400">
+                                    FL{Math.round(alt.altitude/100)}: {alt.conditions}
+                                  </p>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Recent PIREPs */}
+                      {enhancedTurbulenceReport.currentConditions.recentPIREPs.length > 0 && (
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-slate-400 mb-2">
+                            Recent Pilot Reports Along Route
+                          </p>
+                          <div className="space-y-1 text-xs text-slate-400">
+                            {enhancedTurbulenceReport.currentConditions.recentPIREPs.slice(0, 3).map((pirep, idx) => (
+                              <p key={idx}>{formatPIREP(pirep)}</p>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Recommendations */}
+                      {enhancedTurbulenceReport.recommendations.length > 0 && (
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-slate-400 mb-2">
+                            Recommendations
+                          </p>
+                          <ul className="space-y-1">
+                            {enhancedTurbulenceReport.recommendations.map((rec, idx) => (
+                              <li key={idx} className="flex gap-2 text-sm text-slate-300">
+                                <span className="text-sky-400">•</span>
+                                <span>{rec}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      
+                      {/* Active Advisories */}
+                      {(enhancedTurbulenceReport.currentConditions.activeSIGMETs.length > 0 || 
+                        enhancedTurbulenceReport.currentConditions.activeAIRMETs.length > 0) && (
+                        <div>
+                          <p className="text-xs uppercase tracking-wider text-slate-400 mb-2">
+                            Active Advisories
+                          </p>
+                          {enhancedTurbulenceReport.currentConditions.activeSIGMETs.map((sigmet, idx) => (
+                            <div key={`sigmet-${idx}`} className="bg-red-500/10 border border-red-500/30 rounded-lg p-2 mb-2">
+                              <span className="text-xs font-semibold text-red-400">SIGMET:</span>
+                              <span className="text-xs text-slate-300 ml-2">{sigmet.hazard}</span>
+                            </div>
+                          ))}
+                          {enhancedTurbulenceReport.currentConditions.activeAIRMETs.map((airmet, idx) => (
+                            <div key={`airmet-${idx}`} className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-2 mb-2">
+                              <span className="text-xs font-semibold text-yellow-400">AIRMET:</span>
+                              <span className="text-xs text-slate-300 ml-2">{airmet.hazard}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : turbulenceData ? (
+                    <>
+                      {/* Fallback to basic turbulence data */}
                       <div className="bg-white/[0.03] rounded-lg p-3">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-xs uppercase tracking-wider text-slate-400">
@@ -656,38 +896,9 @@ export default function FlightStatus() {
                       )}
                     </>
                   ) : (
-                    <div className="space-y-3 text-sm text-gray-200">
-                      <div>
-                        <div className="text-xs font-semibold tracking-wide text-gray-400">
-                          WHAT YOU'RE NOTICING
-                        </div>
-                        <p>
-                          The bumps feel bigger than they probably are, and your stomach does tiny
-                          "drop" sensations when the air changes.
-                        </p>
-                      </div>
-
-                      <div>
-                        <div className="text-xs font-semibold tracking-wide text-gray-400">
-                          WHY THIS EXISTS
-                        </div>
-                        <p>
-                          The jet is moving through different layers of air speed and temperature.
-                          The wings are designed to flex and absorb that energy instead of fighting it.
-                        </p>
-                      </div>
-
-                      <div>
-                        <div className="text-xs font-semibold tracking-wide text-gray-400">
-                          IF THIS PART MISBEHAVED
-                        </div>
-                        <p>
-                          If anything about the aircraft's response wasn't normal, the pilots would
-                          see it in their instruments long before you could feel it. They also have
-                          strict speed limits and routes for rough air, which they're already following.
-                        </p>
-                      </div>
-                    </div>
+                    <p className="text-slate-300">
+                      Enter your flight number above to see comprehensive turbulence analysis for your specific route.
+                    </p>
                   )}
                 </div>
               )}

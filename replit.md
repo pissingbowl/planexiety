@@ -6,6 +6,27 @@ OTIE (Optimal Timing Intelligence Engine) is an in-flight companion app designed
 
 The application tracks user anxiety levels, flight context, and provides personalized interventions based on emotional state and flight phase using a lightweight state tracking system and intelligent mode selection.
 
+## Recent Changes
+
+**November 19, 2025 - Enhanced Turbulence Analysis System**
+- Implemented comprehensive route-specific turbulence reporting using ALL available data sources
+- Great circle route calculation with 50nm waypoint intervals for accurate flight path tracking
+- Integrated multiple real-time data sources:
+  - **PIREPs**: Pilot reports filtered by route corridor with proximity weighting
+  - **METARs/TAFs**: Weather data for departure, destination, and major airports along route
+  - **SIGMETs/AIRMETs**: Turbulence advisories that intersect the flight path
+  - **Jet Stream Analysis**: Detection of jet stream crossings and wind shear zones
+  - **Weather Gradients**: Temperature and pressure gradient calculations for CAT (Clear Air Turbulence) prediction
+- Enhanced reporting structure includes:
+  - Current conditions with real pilot reports
+  - Phase-by-phase turbulence forecast (takeoff, climb, cruise, descent)
+  - Hot spots with specific lat/lon and expected intensity
+  - Altitude recommendations based on PIREPs and weather data
+  - Confidence metrics based on data availability
+- Visual enhancements with color-coded severity (green=smooth, yellow=light, orange=moderate, red=severe)
+- Distance/time to turbulence areas displayed
+- Turbulence accordion opens by default to showcase analysis
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.

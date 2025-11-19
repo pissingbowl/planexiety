@@ -363,10 +363,38 @@ export default function FlightStatus() {
             isOpen={openAccordion === 'TURBULENCE'}
             onToggle={() => setOpenAccordion(openAccordion === 'TURBULENCE' ? null : 'TURBULENCE')}
           >
-            <p className="text-slate-300">
-              This section will summarize current and forecast turbulence along the route,
-              and translate it into plain language ("light chop", "totally routine for this area", etc).
-            </p>
+            <div className="space-y-3 text-sm text-gray-200">
+              <div>
+                <div className="text-xs font-semibold tracking-wide text-gray-400">
+                  WHAT YOU'RE NOTICING
+                </div>
+                <p>
+                  The bumps feel bigger than they probably are, and your stomach does tiny
+                  "drop" sensations when the air changes.
+                </p>
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold tracking-wide text-gray-400">
+                  WHY THIS EXISTS
+                </div>
+                <p>
+                  The jet is moving through different layers of air speed and temperature.
+                  The wings are designed to flex and absorb that energy instead of fighting it.
+                </p>
+              </div>
+
+              <div>
+                <div className="text-xs font-semibold tracking-wide text-gray-400">
+                  IF THIS PART MISBEHAVED
+                </div>
+                <p>
+                  If anything about the aircraft's response wasn't normal, the pilots would
+                  see it in their instruments long before you could feel it. They also have
+                  strict speed limits and routes for rough air, which they're already following.
+                </p>
+              </div>
+            </div>
           </AccordionSection>
 
           {/* THINGS THAT FEEL WEIRD BUT ARE TOTALLY NORMAL */}

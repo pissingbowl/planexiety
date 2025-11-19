@@ -352,7 +352,7 @@ export default function FlightStatus() {
       // Parse airline and number from callsign like "UAL1234"
       const match = flightData.callsign.match(/^([A-Z]+)(\d+)$/);
       if (match) {
-        const [, airline, number] = match;
+        const [, airlineCode, number] = match;
         const airlineMap: Record<string, string> = {
           'AAL': 'American',
           'DAL': 'Delta',
@@ -360,10 +360,19 @@ export default function FlightStatus() {
           'SWA': 'Southwest',
           'JBU': 'JetBlue',
           'ASA': 'Alaska',
+          'FFT': 'Frontier',
+          'TVF': 'Frontier', // TVF is also used for Frontier
+          'NKS': 'Spirit',
+          'AAY': 'Allegiant',
         };
+        
+        // Get airline name from map or use a cleaner format for unknown airlines
+        const airlineName = airlineMap[airlineCode];
+        
         return {
-          airline: airlineMap[airline] || airline,
-          flightNumber: `${airline}${number}`,
+          airline: airlineName || `${airlineCode}`,
+          // If we have the airline name, show it with number. Otherwise, just show the code with number, no duplication
+          flightNumber: airlineName ? `${number}` : `${airlineCode} ${number}`,
         };
       }
       return {

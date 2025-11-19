@@ -409,9 +409,54 @@ export async function trackFlight(
     flightData.latitude, 
     flightData.longitude
   );
+  const distanceToArrival = calculateDistance(
+    flightData.latitude,
+    flightData.longitude,
+    arrival.lat,
+    arrival.lon
+  );
   
-  // Calculate progress (0-100)
-  const progress = Math.min(100, Math.max(0, (distanceFromDeparture / totalDistance) * 100));
+  // Calculate progress (0-100) using a more accurate method
+  // Consider both distance from departure and distance to arrival
+  let progress: number;
+  
+  // If the plane is very close to departure (< 50km), it's just starting
+  if (distanceFromDeparture < 50) {
+    progress = Math.max(0, Math.min(10, (distanceFromDeparture / 50) * 10));
+  } 
+  // If the plane is very close to arrival (< 50km), it's almost done
+  else if (distanceToArrival < 50) {
+    progress = Math.max(90, Math.min(100, 100 - (distanceToArrival / 50) * 10));
+  } 
+  // Otherwise, calculate based on the relative position along the route
+  else {
+    // Use the ratio of distance traveled vs total journey
+    // But account for the fact that planes don't fly in perfect straight lines
+    const estimatedProgress = (distanceFromDeparture / (distanceFromDeparture + distanceToArrival)) * 100;
+    
+    // Determine flight phase for progress bounding (will be recalculated later for return value)
+    const altitudeFeetTemp = flightData.baro_altitude ? flightData.baro_altitude * 3.28084 : 0;
+    const velocityKtsTemp = flightData.velocity ? flightData.velocity * 1.94384 : 0;
+    const phaseTemp = determineFlightPhase(altitudeFeetTemp, velocityKtsTemp, flightData.on_ground);
+    
+    // Apply phase-based bounds to ensure reasonable progress values
+    if (phaseTemp === 'gate' || phaseTemp === 'taxi') {
+      progress = Math.min(5, estimatedProgress);
+    } else if (phaseTemp === 'takeoff') {
+      progress = Math.min(15, Math.max(5, estimatedProgress));
+    } else if (phaseTemp === 'climb') {
+      progress = Math.min(40, Math.max(15, estimatedProgress));
+    } else if (phaseTemp === 'cruise') {
+      // Cruise should typically be between 30-85% of flight
+      progress = Math.min(85, Math.max(30, estimatedProgress));
+    } else if (phaseTemp === 'descent') {
+      progress = Math.min(95, Math.max(85, estimatedProgress));
+    } else if (phaseTemp === 'landing') {
+      progress = Math.max(95, estimatedProgress);
+    } else {
+      progress = Math.min(100, Math.max(0, estimatedProgress));
+    }
+  }
   
   // Determine flight phase
   const altitudeFeet = flightData.baro_altitude ? flightData.baro_altitude * 3.28084 : 0;
@@ -420,8 +465,50 @@ export async function trackFlight(
   
   // Estimate arrival time
   const remainingDistance = totalDistance - distanceFromDeparture;
-  const groundSpeedKmh = velocityKts * 1.852;
-  const hoursRemaining = groundSpeedKmh > 0 ? remainingDistance / groundSpeedKmh : 0;
+  
+  // Use actual ground speed if available, otherwise estimate based on phase
+  let effectiveSpeedKmh: number;
+  if (velocityKts > 50) {
+    // Use actual ground speed if it's reasonable
+    effectiveSpeedKmh = velocityKts * 1.852;
+  } else {
+    // Estimate speed based on flight phase when actual speed is not available
+    switch (phase) {
+      case 'gate':
+      case 'taxi':
+        effectiveSpeedKmh = 0;
+        break;
+      case 'takeoff':
+        effectiveSpeedKmh = 350; // ~189 knots
+        break;
+      case 'climb':
+        effectiveSpeedKmh = 550; // ~297 knots
+        break;
+      case 'cruise':
+        effectiveSpeedKmh = 850; // ~459 knots (typical cruise speed)
+        break;
+      case 'descent':
+        effectiveSpeedKmh = 600; // ~324 knots
+        break;
+      case 'landing':
+        effectiveSpeedKmh = 280; // ~151 knots
+        break;
+      default:
+        effectiveSpeedKmh = 850; // Default to cruise speed
+    }
+  }
+  
+  // Calculate hours remaining with the effective speed
+  let hoursRemaining: number;
+  if (effectiveSpeedKmh > 0) {
+    hoursRemaining = remainingDistance / effectiveSpeedKmh;
+  } else {
+    // If still at gate/taxi, estimate based on typical total flight time
+    const typicalCruiseSpeed = 850; // km/h
+    const totalFlightHours = totalDistance / typicalCruiseSpeed + 0.5; // Add 30 min for taxi/climb/descent
+    hoursRemaining = totalFlightHours * (1 - progress / 100);
+  }
+  
   const estimatedArrival = new Date(Date.now() + hoursRemaining * 3600000);
   
   return {

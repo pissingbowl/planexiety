@@ -155,6 +155,7 @@ export default function FlightStatus() {
   const [departureAirport, setDepartureAirport] = useState<string>("ORD");
   const [arrivalAirport, setArrivalAirport] = useState<string>("LAX");
   const [isTracking, setIsTracking] = useState(false);
+  const [userFlightInfo, setUserFlightInfo] = useState<{ airline: string; number: string } | null>(null);
   
   // Weather state
   const [weatherData, setWeatherData] = useState<{
@@ -185,11 +186,12 @@ export default function FlightStatus() {
   const simulatedRoute = getSimulatedFlightData(departureAirport, arrivalAirport, simulatedProgress);
   
   // Handle flight selection from input
-  const handleFlightSelect = async (flight: FlightData, departure: string, arrival: string) => {
+  const handleFlightSelect = async (flight: FlightData, departure: string, arrival: string, airline: string, flightNumber: string) => {
     setFlightData(flight);
     setDepartureAirport(departure);
     setArrivalAirport(arrival);
     setIsTracking(true);
+    setUserFlightInfo({ airline, number: flightNumber });
     
     // Start tracking this flight
     const route = await trackFlight(flight, departure, arrival);
@@ -346,8 +348,32 @@ export default function FlightStatus() {
   // arrivalTime is now handled by clientArrivalTime state to prevent hydration mismatch
   const pilotActivity = getPilotActivity(phase);
   
-  // Get airline and flight number from callsign
+  // Get airline and flight number - use the original user input if available
   const getFlightInfo = () => {
+    // If we have the original user flight info, use that
+    if (userFlightInfo) {
+      const airlineNameMap: Record<string, string> = {
+        'AA': 'American',
+        'DL': 'Delta',
+        'UA': 'United',
+        'WN': 'Southwest',
+        'B6': 'JetBlue',
+        'AS': 'Alaska',
+        'F9': 'Frontier',
+        'NK': 'Spirit',
+        'G4': 'Allegiant',
+        'HA': 'Hawaiian',
+      };
+      
+      const airlineName = airlineNameMap[userFlightInfo.airline] || userFlightInfo.airline;
+      
+      return {
+        airline: airlineName,
+        flightNumber: `${userFlightInfo.airline}${userFlightInfo.number}`,
+      };
+    }
+    
+    // Fallback to parsing from callsign if no user info stored
     if (flightData?.callsign) {
       // Parse airline and number from callsign like "UAL1234"
       const match = flightData.callsign.match(/^([A-Z]+)(\d+)$/);

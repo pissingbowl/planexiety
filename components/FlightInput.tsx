@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { searchFlightWithRoute, AIRPORTS, type FlightData } from "@/lib/api/flightTracking";
 
 interface FlightInputProps {
-  onFlightSelect: (flight: FlightData, departure: string, arrival: string) => void;
+  onFlightSelect: (flight: FlightData, departure: string, arrival: string, airline: string, flightNumber: string) => void;
   initialFlightNumber?: string;
   initialDeparture?: string;
   initialArrival?: string;
@@ -132,7 +132,7 @@ export function FlightInput({
         
         setDetectedRoute({ from: departure, to: arrival });
         setSuccess(true);
-        onFlightSelect(flightData, departure, arrival);
+        onFlightSelect(flightData, departure, arrival, selectedAirline, flightNumber);
         
         // Clear success message after 3 seconds
         setTimeout(() => setSuccess(false), 3000);

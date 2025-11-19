@@ -39,7 +39,7 @@ export default function Home() {
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-4">OTIE</h1>
           <p className="text-center max-w-xl mx-auto text-lg text-gray-300">
-            Your flight companion
+            Your in-flight companion for turbulence, timing, and truth.
           </p>
         </div>
 

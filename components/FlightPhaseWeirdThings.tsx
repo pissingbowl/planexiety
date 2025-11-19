@@ -141,10 +141,7 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
   }
 
   return (
-    <div className="mt-4 space-y-4 bg-gray-900/80 border border-gray-800 rounded-xl p-4">
-      <h3 className="font-bold text-lg mb-2 text-white">
-        Things that feel weird but are totally normal
-      </h3>
+    <div className="space-y-4">
       {/* Clickable list */}
       <div className="flex flex-wrap gap-2">
         {visibleItems.map(item =>
@@ -153,14 +150,14 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
               key={item.slotId}
               type="button"
               onClick={() => handleClick(item.slotId, item.event)}
-              className="rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1 text-[11px] text-sky-100 hover:bg-sky-500/20 transition"
+              className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] text-slate-200 hover:bg-white/[0.05] hover:border-white/20 transition-all duration-200"
             >
               {item.event.trigger}
             </button>
           ) : (
             <span
               key={item.slotId}
-              className="rounded-full border border-dashed border-slate-600 px-3 py-1 text-[11px] text-slate-500"
+              className="rounded-full border border-dashed border-white/5 px-3 py-1.5 text-[11px] text-slate-500"
             >
               No more items for this phase
             </span>
@@ -170,13 +167,13 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
 
       {/* Explanation panel */}
       {selectedEvent && (
-        <div className="rounded-xl border border-sky-500/30 bg-slate-900/70 p-3 text-xs leading-relaxed space-y-2">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-xs leading-relaxed space-y-3">
           {/* Navigation controls */}
-          <div className="flex items-center justify-end border-b border-sky-500/20 pb-2 mb-2">
+          <div className="flex items-center justify-end border-b border-white/10 pb-2 mb-3">
             <div className="flex items-center gap-1">
               <button
                 onClick={handlePrevious}
-                className="p-1.5 rounded hover:bg-sky-500/20 transition text-sky-300"
+                className="p-1.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200 text-sky-400"
                 title="Previous"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,7 +182,7 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
               </button>
               <button
                 onClick={handlePlayPause}
-                className="p-1.5 rounded hover:bg-sky-500/20 transition text-sky-300"
+                className="p-1.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200 text-sky-400"
                 title={isPlaying ? "Pause" : "Play"}
               >
                 {isPlaying ? (
@@ -201,7 +198,7 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
               </button>
               <button
                 onClick={handleNext}
-                className="p-1.5 rounded hover:bg-sky-500/20 transition text-sky-300"
+                className="p-1.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200 text-sky-400"
                 title="Next"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,28 +208,28 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
             </div>
           </div>
 
-          <div className="text-[10px] uppercase tracking-wide text-sky-300">
+          <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400">
             What you're noticing
           </div>
           <div>
-            <div className="font-medium mb-1">
+            <div className="font-medium text-slate-100 mb-1.5">
               {selectedEvent.trigger}
             </div>
-            <p className="mb-2">{selectedEvent.explanation}</p>
+            <p className="text-slate-300 leading-relaxed">{selectedEvent.explanation}</p>
           </div>
 
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wide text-sky-300">
+            <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400 mb-1.5">
               Why this exists
             </div>
-            <p>{selectedEvent.whyItExists}</p>
+            <p className="text-slate-300 leading-relaxed">{selectedEvent.whyItExists}</p>
           </div>
 
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wide text-sky-300 mt-2">
+            <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400 mb-1.5 mt-3">
               If this part misbehaved
             </div>
-            <p>{selectedEvent.ifItFailed}</p>
+            <p className="text-slate-300 leading-relaxed">{selectedEvent.ifItFailed}</p>
           </div>
         </div>
       )}

@@ -238,29 +238,29 @@ export default function FlightStatus() {
 
   return (
     <section className="mt-10 w-full max-w-2xl mx-auto text-white">
-      <div className="bg-gray-900/80 border border-gray-700 rounded-2xl p-6 shadow-xl backdrop-blur">
+      <div className="bg-slate-950/60 border border-white/10 rounded-2xl p-6 shadow-xl backdrop-blur-xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-gray-400">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
               Current Flight
             </p>
             <h2 className="text-xl font-semibold mt-1">
               {airline} <span className="font-mono">{flightNumber}</span>
             </h2>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-slate-400 mt-1">
               {from} → {to}
             </p>
           </div>
 
           <div className="text-right">
-            <p className="text-xs text-gray-400 uppercase tracking-[0.15em]">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
               Phase
             </p>
-            <p className="text-sm font-medium">{phase}</p>
-            <p className="text-xs text-gray-400 mt-1">
+            <p className="text-sm font-medium text-sky-400">{phase}</p>
+            <p className="text-xs text-slate-400 mt-1">
               Time remaining:{" "}
-              <span className="font-mono text-gray-100">
+              <span className="font-mono text-slate-200">
                 {timeRemaining}
               </span>
             </p>
@@ -288,7 +288,7 @@ export default function FlightStatus() {
 
         {/* Phase timeline */}
         <div className="mt-4">
-          <div className="flex justify-between text-[10px] text-gray-400 uppercase tracking-[0.15em]">
+          <div className="flex justify-between text-[10px] text-slate-400 uppercase tracking-[0.2em]">
             {["Boarding", "Taxi", "Takeoff", "Climb", "Cruise", "Descent", "Landing"].map(
               p => {
                 const isCurrent = p === phase;
@@ -296,8 +296,8 @@ export default function FlightStatus() {
                   <span
                     key={p}
                     className={
-                      "flex-1 text-center " +
-                      (isCurrent ? "text-blue-400 font-semibold" : "")
+                      "flex-1 text-center transition-colors duration-200 " +
+                      (isCurrent ? "text-sky-400 font-semibold" : "")
                     }
                   >
                     {p}
@@ -311,12 +311,12 @@ export default function FlightStatus() {
         {/* Live status footer */}
         <div className="mt-6 flex items-center justify-between text-sm">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-gray-300">Live status (simulated)</span>
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.6)]" />
+            <span className="text-slate-300">Live status (simulated)</span>
           </div>
-          <div className="text-right text-gray-400 text-xs">
-            <p>Est. arrival (local)</p>
-            <p className="font-mono text-gray-100">
+          <div className="text-right text-slate-400 text-xs">
+            <p className="font-semibold tracking-[0.1em] uppercase">Est. arrival (local)</p>
+            <p className="font-mono text-slate-200 mt-0.5">
               {mockArrivalLocal}
             </p>
           </div>
@@ -383,26 +383,26 @@ export default function FlightStatus() {
           >
             <div className="grid gap-6 md:grid-cols-2">
               <div>
-                <div className="text-xs font-semibold tracking-[0.16em] uppercase text-sky-400 mb-2">
+                <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400 mb-3">
                   What they're actually doing
                 </div>
-                <ul className="space-y-2 text-slate-200 text-sm">
-                  <li>• Monitoring the autopilot and flight path, not hand-flying the whole time.</li>
-                  <li>• Talking with ATC, watching the weather ahead, and planning the next phase.</li>
-                  <li>• Cross-checking instruments and system messages, most of which are boringly normal.</li>
-                  <li>• Staying ahead of the airplane with checklists and briefings instead of reacting last-second.</li>
+                <ul className="space-y-2.5 text-slate-200 text-sm leading-relaxed">
+                  <li className="flex gap-2"><span className="text-sky-400">•</span> Monitoring the autopilot and flight path, not hand-flying the whole time.</li>
+                  <li className="flex gap-2"><span className="text-sky-400">•</span> Talking with ATC, watching the weather ahead, and planning the next phase.</li>
+                  <li className="flex gap-2"><span className="text-sky-400">•</span> Cross-checking instruments and system messages, most of which are boringly normal.</li>
+                  <li className="flex gap-2"><span className="text-sky-400">•</span> Staying ahead of the airplane with checklists and briefings instead of reacting last-second.</li>
                 </ul>
               </div>
 
               <div>
-                <div className="text-xs font-semibold tracking-[0.16em] uppercase text-sky-400 mb-2">
+                <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400 mb-3">
                   What a frightened mind imagines
                 </div>
-                <ul className="space-y-2 text-slate-300/90 text-sm">
-                  <li>• White-knuckle "steering" the jet every second to keep it from falling.</li>
-                  <li>• Fighting the turbulence like it's a storm in a movie.</li>
-                  <li>• Hoping nothing breaks because there's no backup plan.</li>
-                  <li>• Being surprised by every sound or motion instead of expecting them.</li>
+                <ul className="space-y-2.5 text-slate-300/80 text-sm leading-relaxed">
+                  <li className="flex gap-2"><span className="text-slate-500">•</span> White-knuckle "steering" the jet every second to keep it from falling.</li>
+                  <li className="flex gap-2"><span className="text-slate-500">•</span> Fighting the turbulence like it's a storm in a movie.</li>
+                  <li className="flex gap-2"><span className="text-slate-500">•</span> Hoping nothing breaks because there's no backup plan.</li>
+                  <li className="flex gap-2"><span className="text-slate-500">•</span> Being surprised by every sound or motion instead of expecting them.</li>
                 </ul>
               </div>
             </div>
@@ -413,28 +413,28 @@ export default function FlightStatus() {
         <button
           type="button"
           onClick={() => setNerdOpen(open => !open)}
-          className="mt-6 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-blue-500/60 bg-blue-900/20 text-xs font-semibold uppercase tracking-[0.18em] text-blue-200 hover:bg-blue-900/40 transition-colors"
+          className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/[0.03] text-xs font-semibold uppercase tracking-[0.2em] text-sky-400 hover:bg-white/[0.05] hover:border-white/20 transition-all duration-200"
         >
           For the nerds
-          <span className="text-[10px] text-blue-300 normal-case tracking-normal">
+          <span className="text-[10px] text-slate-400 normal-case tracking-normal">
             {nerdOpen ? "Hide extra data" : "Show VORs, radials & FAF"}
           </span>
         </button>
 
         {nerdOpen && (
-          <div className="mt-5 border-t border-gray-800 pt-4">
-            <div className="flex items-center justify-between mb-2">
+          <div className="mt-5 border-t border-white/10 pt-5">
+            <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-xs uppercase tracking-[0.18em] text-gray-400">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                   Route segment
                 </p>
-                <p className="text-sm font-medium">
+                <p className="text-sm font-medium text-slate-200 mt-1">
                   {currentSegment.label}
                 </p>
               </div>
-              <div className="text-right text-xs text-gray-400">
-                <p>Dist. to FAF</p>
-                <p className="font-mono text-gray-100">
+              <div className="text-right text-xs text-slate-400">
+                <p className="font-semibold tracking-[0.1em] uppercase">Dist. to FAF</p>
+                <p className="font-mono text-slate-200 mt-0.5">
                   {currentSegment.distanceToFAFNm} nm
                 </p>
               </div>
@@ -458,18 +458,18 @@ export default function FlightStatus() {
               {currentSegment.vorFixes.map(fix => (
                 <div
                   key={fix.id}
-                  className="bg-gray-900/80 border border-gray-700/80 rounded-xl px-3 py-3 flex flex-col gap-1"
+                  className="bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 flex flex-col gap-1.5 hover:bg-white/[0.05] transition-all duration-200"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-mono text-sm">{fix.id}</span>
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-gray-400">
+                    <span className="font-mono text-sm text-slate-200">{fix.id}</span>
+                    <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500">
                       VOR / FIX
                     </span>
                   </div>
-                  <p className="text-gray-200">{fix.name}</p>
-                  <div className="flex items-center justify-between text-xs text-gray-300 mt-1">
+                  <p className="text-slate-300">{fix.name}</p>
+                  <div className="flex items-center justify-between text-xs text-slate-400 mt-2">
                     <span>Radial: {fix.radial}</span>
-                    <span>{fix.distanceNm} nm</span>
+                    <span className="font-mono">{fix.distanceNm} nm</span>
                   </div>
                 </div>
               ))}

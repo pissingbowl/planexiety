@@ -10,7 +10,7 @@ import {
 
 interface Props {
   phase: FlightPhase;
-  visibleCount?: number;
+  maxVisibleEvents?: number;
 }
 
 interface VisibleItem {
@@ -18,7 +18,7 @@ interface VisibleItem {
   event: FlightPhaseEvent | null;
 }
 
-export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
+export function FlightPhaseWeirdThings({ phase, maxVisibleEvents = 3 }: Props) {
   const allEventsForPhase = useMemo(
     () => FLIGHT_PHASE_EVENTS[phase] ?? [],
     [phase]
@@ -47,25 +47,31 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
 
   // Initialize / reset when phase changes
   useEffect(() => {
-    const newSeen = new Set<string>();
     const initialVisible: VisibleItem[] = [];
+    const usedEventIds = new Set<string>();
 
-    for (let i = 0; i < visibleCount; i++) {
-      const event = pickRandomEvent(newSeen);
-      if (event) {
-        newSeen.add(event.id);
+    // Pick unique random events for initial visible slots
+    for (let i = 0; i < maxVisibleEvents; i++) {
+      const availableEvents = allEventsForPhase.filter(
+        e => !usedEventIds.has(e.id)
+      );
+      
+      if (availableEvents.length > 0) {
+        const randomIndex = Math.floor(Math.random() * availableEvents.length);
+        const event = availableEvents[randomIndex];
+        usedEventIds.add(event.id);
         initialVisible.push({ slotId: i, event });
       } else {
         initialVisible.push({ slotId: i, event: null });
       }
     }
 
-    setSeenIds(newSeen);
+    setSeenIds(usedEventIds);
     setVisibleItems(initialVisible);
     setSelectedEvent(allEventsForPhase[0] || null);
     setCurrentIndex(0);
     setIsPlaying(false);
-  }, [phase, visibleCount, allEventsForPhase]);
+  }, [phase, maxVisibleEvents, allEventsForPhase]);
 
   // Autoplay effect
   useEffect(() => {
@@ -118,19 +124,38 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
     }
 
     setVisibleItems(prev => {
+      // Collect IDs of all currently visible events (excluding the clicked one)
+      const currentVisibleIds = new Set<string>();
+      prev.forEach(item => {
+        if (item.event && item.slotId !== slotId) {
+          currentVisibleIds.add(item.event.id);
+        }
+      });
+      
+      // Add the clicked event to seen history
       const newSeen = new Set(seenIds);
       newSeen.add(event.id);
-
-      const replacement = pickRandomEvent(newSeen);
-      if (replacement) {
-        newSeen.add(replacement.id);
+      
+      // Find replacement that's not currently visible and not the clicked event
+      const excludeIds = new Set([...currentVisibleIds, event.id]);
+      const availableEvents = allEventsForPhase.filter(
+        e => !excludeIds.has(e.id)
+      );
+      
+      let replacement: FlightPhaseEvent | null = null;
+      if (availableEvents.length > 0) {
+        const randomIndex = Math.floor(Math.random() * availableEvents.length);
+        replacement = availableEvents[randomIndex];
+        if (replacement) {
+          newSeen.add(replacement.id);
+        }
       }
 
       setSeenIds(newSeen);
 
       return prev.map(item =>
         item.slotId === slotId
-          ? { ...item, event: replacement ?? item.event }
+          ? { ...item, event: replacement }
           : item
       );
     });
@@ -150,14 +175,14 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
               key={item.slotId}
               type="button"
               onClick={() => handleClick(item.slotId, item.event)}
-              className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 text-[11px] text-slate-200 hover:bg-white/[0.05] hover:border-white/20 transition-all duration-200"
+              className="rounded-full border border-slate-800/50 bg-white/[0.03] px-3 py-1.5 text-xs text-gray-200 hover:bg-white/[0.05] hover:border-slate-700/50 transition-all duration-200 backdrop-blur-sm"
             >
               {item.event.trigger}
             </button>
           ) : (
             <span
               key={item.slotId}
-              className="rounded-full border border-dashed border-white/5 px-3 py-1.5 text-[11px] text-slate-500"
+              className="rounded-full border border-dashed border-slate-800/30 px-3 py-1.5 text-xs text-gray-500"
             >
               No more items for this phase
             </span>
@@ -167,13 +192,13 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
 
       {/* Explanation panel */}
       {selectedEvent && (
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-xs leading-relaxed space-y-3">
+        <div className="rounded-3xl border border-slate-800/50 bg-white/[0.03] backdrop-blur-sm p-5 text-xs leading-relaxed space-y-4">
           {/* Navigation controls */}
-          <div className="flex items-center justify-end border-b border-white/10 pb-2 mb-3">
+          <div className="flex items-center justify-end border-b border-slate-800/30 pb-3 mb-4">
             <div className="flex items-center gap-1">
               <button
                 onClick={handlePrevious}
-                className="p-1.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200 text-sky-400"
+                className="p-1.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200 text-gray-400 hover:text-gray-200"
                 title="Previous"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -182,7 +207,7 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
               </button>
               <button
                 onClick={handlePlayPause}
-                className="p-1.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200 text-sky-400"
+                className="p-1.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200 text-gray-400 hover:text-gray-200"
                 title={isPlaying ? "Pause" : "Play"}
               >
                 {isPlaying ? (
@@ -198,7 +223,7 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
               </button>
               <button
                 onClick={handleNext}
-                className="p-1.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200 text-sky-400"
+                className="p-1.5 rounded-lg hover:bg-white/[0.05] transition-all duration-200 text-gray-400 hover:text-gray-200"
                 title="Next"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -208,28 +233,28 @@ export function FlightPhaseWeirdThings({ phase, visibleCount = 3 }: Props) {
             </div>
           </div>
 
-          <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400">
-            What you're noticing
-          </div>
           <div>
-            <div className="font-medium text-slate-100 mb-1.5">
+            <div className="text-xs font-semibold tracking-[0.2em] uppercase text-gray-400 mb-2">
+              What you're noticing
+            </div>
+            <div className="font-medium text-gray-200 mb-1.5">
               {selectedEvent.trigger}
             </div>
-            <p className="text-slate-300 leading-relaxed">{selectedEvent.explanation}</p>
+            <p className="text-gray-300 leading-relaxed">{selectedEvent.explanation}</p>
           </div>
 
           <div>
-            <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400 mb-1.5">
+            <div className="text-xs font-semibold tracking-[0.2em] uppercase text-gray-400 mb-2">
               Why this exists
             </div>
-            <p className="text-slate-300 leading-relaxed">{selectedEvent.whyItExists}</p>
+            <p className="text-gray-300 leading-relaxed">{selectedEvent.whyItExists}</p>
           </div>
 
           <div>
-            <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400 mb-1.5 mt-3">
+            <div className="text-xs font-semibold tracking-[0.2em] uppercase text-gray-400 mb-2">
               If this part misbehaved
             </div>
-            <p className="text-slate-300 leading-relaxed">{selectedEvent.ifItFailed}</p>
+            <p className="text-gray-300 leading-relaxed">{selectedEvent.ifItFailed}</p>
           </div>
         </div>
       )}

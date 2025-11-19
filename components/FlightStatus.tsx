@@ -217,6 +217,40 @@ export default function FlightStatus() {
   const [segmentIndex, setSegmentIndex] = useState(1); // start at mid-cruise
   const [openAccordion, setOpenAccordion] = useState<string | null>(null); // No default open accordion
 
+  // Define sections array for accordions
+  const sections = [
+    {
+      id: 'WEATHER',
+      title: 'WEATHER',
+      subtitle: 'Coming soon: real-time weather at origin, en route, and destination.',
+      icon: '☁️'
+    },
+    {
+      id: 'AROUND',
+      title: "WHAT'S AROUND ME?",
+      subtitle: "A sense of what you're flying over right now.",
+      icon: '🗺️'
+    },
+    {
+      id: 'TURBULENCE',
+      title: 'TURBULENCE ANALYSIS',
+      subtitle: 'Why the bumps feel big, and why the jet is built for far more.',
+      icon: '〰️'
+    },
+    {
+      id: 'WEIRD',
+      title: 'THINGS THAT FEEL WEIRD BUT ARE TOTALLY NORMAL',
+      subtitle: 'Tap anything that sounds familiar to see what it really is, why it exists, and what covers you if that part misbehaves.',
+      icon: '✈️'
+    },
+    {
+      id: 'PILOTS',
+      title: 'WHAT THE PILOTS ARE DOING RIGHT NOW',
+      subtitle: 'A grounded view of their job in this phase of flight.',
+      icon: '👨‍✈️'
+    }
+  ];
+
   // Simulate the flight progressing over time
   useEffect(() => {
     const interval = setInterval(() => {
@@ -329,117 +363,98 @@ export default function FlightStatus() {
 
         {/* Accordion sections */}
         <div className="mt-6 space-y-3">
-
-          {/* WEATHER */}
-          <AccordionSection
-            title="WEATHER"
-            subtitle="Coming soon: real-time weather at origin, en route, and destination."
-            isOpen={openAccordion === 'WEATHER'}
-            onToggle={() => setOpenAccordion(openAccordion === 'WEATHER' ? null : 'WEATHER')}
-          >
-            <p className="text-slate-300">
-              Weather intelligence will live here — conditions at your departure and arrival,
-              plus what the air is doing in between.
-            </p>
-          </AccordionSection>
-
-          {/* WHAT'S AROUND ME? */}
-          <AccordionSection
-            title="WHAT'S AROUND ME?"
-            subtitle="A sense of what you're flying over right now."
-            isOpen={openAccordion === 'AROUND'}
-            onToggle={() => setOpenAccordion(openAccordion === 'AROUND' ? null : 'AROUND')}
-          >
-            <p className="text-slate-300">
-              This will eventually show nearby cities, terrain, and other reference points
-              so your brain has something concrete to picture instead of "empty sky".
-            </p>
-          </AccordionSection>
-
-          {/* TURBULENCE ANALYSIS */}
-          <AccordionSection
-            title="TURBULENCE ANALYSIS"
-            subtitle="Why the bumps feel big, and why the jet is built for far more."
-            isOpen={openAccordion === 'TURBULENCE'}
-            onToggle={() => setOpenAccordion(openAccordion === 'TURBULENCE' ? null : 'TURBULENCE')}
-          >
-            <div className="space-y-3 text-sm text-gray-200">
-              <div>
-                <div className="text-xs font-semibold tracking-wide text-gray-400">
-                  WHAT YOU'RE NOTICING
-                </div>
-                <p>
-                  The bumps feel bigger than they probably are, and your stomach does tiny
-                  "drop" sensations when the air changes.
+          {sections.map((section) => (
+            <AccordionSection
+              key={section.id}
+              title={section.title}
+              subtitle={section.subtitle}
+              icon={section.icon}
+              isOpen={openAccordion === section.id}
+              onToggle={() => setOpenAccordion(openAccordion === section.id ? null : section.id)}
+            >
+              {/* Render different content based on section id */}
+              {section.id === 'WEATHER' && (
+                <p className="text-slate-300">
+                  Weather intelligence will live here — conditions at your departure and arrival,
+                  plus what the air is doing in between.
                 </p>
-              </div>
-
-              <div>
-                <div className="text-xs font-semibold tracking-wide text-gray-400">
-                  WHY THIS EXISTS
-                </div>
-                <p>
-                  The jet is moving through different layers of air speed and temperature.
-                  The wings are designed to flex and absorb that energy instead of fighting it.
+              )}
+              
+              {section.id === 'AROUND' && (
+                <p className="text-slate-300">
+                  This will eventually show nearby cities, terrain, and other reference points
+                  so your brain has something concrete to picture instead of "empty sky".
                 </p>
-              </div>
+              )}
+              
+              {section.id === 'TURBULENCE' && (
+                <div className="space-y-3 text-sm text-gray-200">
+                  <div>
+                    <div className="text-xs font-semibold tracking-wide text-gray-400">
+                      WHAT YOU'RE NOTICING
+                    </div>
+                    <p>
+                      The bumps feel bigger than they probably are, and your stomach does tiny
+                      "drop" sensations when the air changes.
+                    </p>
+                  </div>
 
-              <div>
-                <div className="text-xs font-semibold tracking-wide text-gray-400">
-                  IF THIS PART MISBEHAVED
+                  <div>
+                    <div className="text-xs font-semibold tracking-wide text-gray-400">
+                      WHY THIS EXISTS
+                    </div>
+                    <p>
+                      The jet is moving through different layers of air speed and temperature.
+                      The wings are designed to flex and absorb that energy instead of fighting it.
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="text-xs font-semibold tracking-wide text-gray-400">
+                      IF THIS PART MISBEHAVED
+                    </div>
+                    <p>
+                      If anything about the aircraft's response wasn't normal, the pilots would
+                      see it in their instruments long before you could feel it. They also have
+                      strict speed limits and routes for rough air, which they're already following.
+                    </p>
+                  </div>
                 </div>
-                <p>
-                  If anything about the aircraft's response wasn't normal, the pilots would
-                  see it in their instruments long before you could feel it. They also have
-                  strict speed limits and routes for rough air, which they're already following.
-                </p>
-              </div>
-            </div>
-          </AccordionSection>
+              )}
+              
+              {section.id === 'WEIRD' && (
+                <FlightPhaseWeirdThings phase={normalizedPhase} />
+              )}
+              
+              {section.id === 'PILOTS' && (
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div>
+                    <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400 mb-3">
+                      What they're actually doing
+                    </div>
+                    <ul className="space-y-2.5 text-slate-200 text-sm leading-relaxed">
+                      <li className="flex gap-2"><span className="text-sky-400">•</span> Monitoring the autopilot and flight path, not hand-flying the whole time.</li>
+                      <li className="flex gap-2"><span className="text-sky-400">•</span> Talking with ATC, watching the weather ahead, and planning the next phase.</li>
+                      <li className="flex gap-2"><span className="text-sky-400">•</span> Cross-checking instruments and system messages, most of which are boringly normal.</li>
+                      <li className="flex gap-2"><span className="text-sky-400">•</span> Staying ahead of the airplane with checklists and briefings instead of reacting last-second.</li>
+                    </ul>
+                  </div>
 
-          {/* THINGS THAT FEEL WEIRD BUT ARE TOTALLY NORMAL */}
-          <AccordionSection
-            title="THINGS THAT FEEL WEIRD BUT ARE TOTALLY NORMAL"
-            subtitle="Tap anything that sounds familiar to see what it really is, why it exists, and what covers you if that part misbehaves."
-            isOpen={openAccordion === 'WEIRD'}
-            onToggle={() => setOpenAccordion(openAccordion === 'WEIRD' ? null : 'WEIRD')}
-          >
-            <FlightPhaseWeirdThings phase={normalizedPhase} />
-          </AccordionSection>
-
-          {/* WHAT THE PILOTS ARE DOING RIGHT NOW */}
-          <AccordionSection
-            title="WHAT THE PILOTS ARE DOING RIGHT NOW"
-            subtitle="A grounded view of their job in this phase of flight."
-            isOpen={openAccordion === 'PILOTS'}
-            onToggle={() => setOpenAccordion(openAccordion === 'PILOTS' ? null : 'PILOTS')}
-          >
-            <div className="grid gap-6 md:grid-cols-2">
-              <div>
-                <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400 mb-3">
-                  What they're actually doing
+                  <div>
+                    <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400 mb-3">
+                      What a frightened mind imagines
+                    </div>
+                    <ul className="space-y-2.5 text-slate-300/80 text-sm leading-relaxed">
+                      <li className="flex gap-2"><span className="text-slate-500">•</span> White-knuckle "steering" the jet every second to keep it from falling.</li>
+                      <li className="flex gap-2"><span className="text-slate-500">•</span> Fighting the turbulence like it's a storm in a movie.</li>
+                      <li className="flex gap-2"><span className="text-slate-500">•</span> Hoping nothing breaks because there's no backup plan.</li>
+                      <li className="flex gap-2"><span className="text-slate-500">•</span> Being surprised by every sound or motion instead of expecting them.</li>
+                    </ul>
+                  </div>
                 </div>
-                <ul className="space-y-2.5 text-slate-200 text-sm leading-relaxed">
-                  <li className="flex gap-2"><span className="text-sky-400">•</span> Monitoring the autopilot and flight path, not hand-flying the whole time.</li>
-                  <li className="flex gap-2"><span className="text-sky-400">•</span> Talking with ATC, watching the weather ahead, and planning the next phase.</li>
-                  <li className="flex gap-2"><span className="text-sky-400">•</span> Cross-checking instruments and system messages, most of which are boringly normal.</li>
-                  <li className="flex gap-2"><span className="text-sky-400">•</span> Staying ahead of the airplane with checklists and briefings instead of reacting last-second.</li>
-                </ul>
-              </div>
-
-              <div>
-                <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400 mb-3">
-                  What a frightened mind imagines
-                </div>
-                <ul className="space-y-2.5 text-slate-300/80 text-sm leading-relaxed">
-                  <li className="flex gap-2"><span className="text-slate-500">•</span> White-knuckle "steering" the jet every second to keep it from falling.</li>
-                  <li className="flex gap-2"><span className="text-slate-500">•</span> Fighting the turbulence like it's a storm in a movie.</li>
-                  <li className="flex gap-2"><span className="text-slate-500">•</span> Hoping nothing breaks because there's no backup plan.</li>
-                  <li className="flex gap-2"><span className="text-slate-500">•</span> Being surprised by every sound or motion instead of expecting them.</li>
-                </ul>
-              </div>
-            </div>
-          </AccordionSection>
+              )}
+            </AccordionSection>
+          ))}
         </div>
 
         {/* Nerd panel */}

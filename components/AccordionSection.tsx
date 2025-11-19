@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 interface AccordionSectionProps {
   title: string;
   subtitle?: string;
+  icon?: string;
   isOpen: boolean;
   onToggle: () => void;
   children: ReactNode;
@@ -13,6 +14,7 @@ interface AccordionSectionProps {
 export function AccordionSection({
   title,
   subtitle,
+  icon,
   isOpen,
   onToggle,
   children,
@@ -36,15 +38,22 @@ export function AccordionSection({
           ${isOpen ? 'bg-white/[0.03]' : ''}
         `}
       >
-        <div className="text-left">
-          <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400">
-            {title}
-          </div>
-          {subtitle && (
-            <div className="mt-1.5 text-xs text-slate-400 leading-relaxed">
-              {subtitle}
+        <div className="flex items-center gap-3">
+          {icon && (
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10">
+              <span className="text-sm">{icon}</span>
             </div>
           )}
+          <div className="text-left">
+            <div className="text-xs font-semibold tracking-[0.2em] uppercase text-sky-400">
+              {title}
+            </div>
+            {subtitle && (
+              <div className="mt-1.5 text-xs text-slate-400 leading-relaxed">
+                {subtitle}
+              </div>
+            )}
+          </div>
         </div>
         <div className={`
           ml-4 flex h-7 w-7 items-center justify-center rounded-full 

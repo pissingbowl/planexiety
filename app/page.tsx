@@ -1,6 +1,5 @@
 import FlightStatus from '../components/FlightStatus';
 import ChatInterface from "../components/ChatInterface";
-import LiveFlightMap from "../components/LiveFlightMap";
 
 export default function Home() {
   return (
@@ -36,45 +35,19 @@ export default function Home() {
         }}
       />
       
-      <div className="w-full max-w-7xl space-y-6 relative z-10">
-        <div className="text-center mb-6">
-          <h1 className="text-4xl md:text-5xl font-bold mb-2">OTIE</h1>
-          <p className="text-sm text-gray-400">
+      <div className="w-full max-w-4xl space-y-8 relative z-10">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold mb-4">OTIE</h1>
+          <p className="text-center max-w-xl mx-auto text-lg text-gray-300">
             Your flight companion
           </p>
         </div>
 
-        {/* Hero Map Section - Main Feature */}
-        <div className="w-full mb-8">
-          <div className="rounded-2xl border border-sky-900/40 bg-slate-950/50 backdrop-blur-sm overflow-hidden shadow-2xl">
-            <div className="px-5 py-4 bg-gradient-to-r from-sky-950/30 to-slate-950/30 border-b border-sky-900/30">
-              <h2 className="text-sm font-semibold tracking-[0.2em] uppercase text-sky-400">
-                Live Flight Radar
-              </h2>
-              <p className="mt-1 text-xs text-slate-300/70">
-                Real-time aircraft across the United States • Click any aircraft for details
-              </p>
-            </div>
-            <div className="p-3 bg-slate-950/30">
-              <div className="h-[550px] rounded-lg overflow-hidden">
-                <LiveFlightMap />
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Flight Status */}
+        <FlightStatus />
 
-        {/* Secondary Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Flight Status */}
-          <div className="order-1">
-            <FlightStatus />
-          </div>
-
-          {/* Chat Interface */}
-          <div className="order-2">
-            <ChatInterface />
-          </div>
-        </div>
+        {/* Chat Interface */}
+        <ChatInterface />
       </div>
     </main>
   );

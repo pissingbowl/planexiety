@@ -169,6 +169,9 @@ export default function FlightStatus() {
   const [openAccordion, setOpenAccordion] = useState<string | null>(null);
   const [nerdOpen, setNerdOpen] = useState(false);
   
+  // Client-side arrival time state to prevent hydration mismatch
+  const [clientArrivalTime, setClientArrivalTime] = useState<string>("--:-- --");
+  
   // Update interval ref
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null);
   
@@ -292,6 +295,16 @@ export default function FlightStatus() {
     return () => clearInterval(interval);
   }, [isTracking]);
   
+  // Update arrival time on client side only to prevent hydration mismatch
+  useEffect(() => {
+    // Calculate arrival time only on the client side
+    const route = flightRoute || simulatedRoute;
+    if (route && route.estimatedArrival) {
+      const formattedTime = formatTimeFromDate(route.estimatedArrival);
+      setClientArrivalTime(formattedTime);
+    }
+  }, [flightRoute, simulatedRoute]);
+  
   // Determine current values (real or simulated)
   const currentRoute = flightRoute || simulatedRoute;
   const progress = currentRoute.progress;
@@ -299,7 +312,7 @@ export default function FlightStatus() {
   const normalizedPhase = mapPhaseToFlightPhase(phase);
   const estimatedArrival = currentRoute.estimatedArrival;
   const timeRemaining = formatTimeRemaining(estimatedArrival);
-  const arrivalTime = formatTimeFromDate(estimatedArrival);
+  // arrivalTime is now handled by clientArrivalTime state to prevent hydration mismatch
   const pilotActivity = getPilotActivity(phase);
   
   // Get airline and flight number from callsign
@@ -470,7 +483,7 @@ export default function FlightStatus() {
           <div className="text-right text-slate-400 text-xs">
             <p className="font-semibold tracking-[0.1em] uppercase">Est. arrival (local)</p>
             <p className="font-mono text-slate-200 mt-0.5">
-              {arrivalTime}
+              {clientArrivalTime}
             </p>
           </div>
         </div>

@@ -86,6 +86,118 @@ function mapPhaseToFlightPhase(phase: string): FlightPhase {
   return "cruise";
 }
 
+// Function to calculate normality score based on route patterns
+function getNormalityScore(departure: string, arrival: string, phase: string): { score: number; description: string } {
+  // Route-specific turbulence patterns
+  const routeKey = `${departure}-${arrival}`;
+  const routeScores: Record<string, number> = {
+    // Mountain wave routes
+    'ORD-DEN': 4.2,
+    'DEN-ORD': 4.3,
+    'DEN-SLC': 4.4,
+    'SLC-DEN': 4.4,
+    'DEN-PHX': 4.1,
+    'PHX-DEN': 4.1,
+    
+    // Jet stream routes
+    'LAX-JFK': 4.5,
+    'JFK-LAX': 4.6,
+    'SFO-JFK': 4.5,
+    'JFK-SFO': 4.6,
+    'LAX-BOS': 4.4,
+    'BOS-LAX': 4.5,
+    'SEA-JFK': 4.5,
+    'JFK-SEA': 4.6,
+    
+    // Convective activity routes
+    'MIA-ATL': 3.8,
+    'ATL-MIA': 3.8,
+    'DFW-MIA': 3.9,
+    'MIA-DFW': 3.9,
+    'IAH-MIA': 3.7,
+    'MIA-IAH': 3.7,
+    'TPA-ATL': 3.8,
+    'ATL-TPA': 3.8,
+    
+    // Coastal wind routes
+    'SEA-SFO': 4.8,
+    'SFO-SEA': 4.8,
+    'LAX-SFO': 4.7,
+    'SFO-LAX': 4.7,
+    'SAN-SFO': 4.6,
+    'SFO-SAN': 4.6,
+    'SEA-PDX': 4.5,
+    'PDX-SEA': 4.5,
+    
+    // Plains turbulence routes
+    'DEN-ORD': 4.3,
+    'ORD-DEN': 4.2,
+    'DEN-DFW': 4.0,
+    'DFW-DEN': 4.0,
+    'DEN-MSP': 4.1,
+    'MSP-DEN': 4.1,
+    
+    // Common smooth routes
+    'LAX-PHX': 3.2,
+    'PHX-LAX': 3.2,
+    'LAS-LAX': 3.3,
+    'LAX-LAS': 3.3,
+    'SAN-PHX': 3.1,
+    'PHX-SAN': 3.1,
+    
+    // Northeast corridor
+    'BOS-DCA': 4.0,
+    'DCA-BOS': 4.0,
+    'JFK-BOS': 3.8,
+    'BOS-JFK': 3.8,
+    'LGA-BOS': 3.9,
+    'BOS-LGA': 3.9,
+  };
+  
+  // Get base score for route, default to 3.5 for unknown routes
+  let baseScore = routeScores[routeKey] || 3.5;
+  
+  // Adjust slightly based on phase
+  const phaseAdjustments: Record<string, number> = {
+    'gate': -0.1,
+    'taxi': -0.1,
+    'takeoff': 0.1,
+    'climb': 0.2,
+    'cruise': 0,
+    'descent': 0.1,
+    'landing': 0.2,
+  };
+  
+  const phaseAdjustment = phaseAdjustments[phase.toLowerCase()] || 0;
+  let finalScore = Math.min(5.0, Math.max(0, baseScore + phaseAdjustment));
+  
+  // Add seasonal adjustments (simplified - in production would check actual date)
+  const seasonalRoutes = ['ORD-DEN', 'DEN-ORD', 'MIA-ATL', 'ATL-MIA', 'DFW-MIA', 'MIA-DFW'];
+  if (seasonalRoutes.includes(routeKey)) {
+    // Add small random variation to simulate seasonal effects
+    finalScore = Math.min(5.0, finalScore + (Math.random() * 0.3 - 0.15));
+  }
+  
+  // Determine description based on score
+  let description: string;
+  if (finalScore >= 4.5) {
+    description = "Very common for this route";
+  } else if (finalScore >= 3.5) {
+    description = "Common for this route";
+  } else if (finalScore >= 2.5) {
+    description = "Occasional for this route";
+  } else if (finalScore >= 1.5) {
+    description = "Uncommon for this route";
+  } else {
+    description = "Rare for this route";
+  }
+  
+  return {
+    score: Math.round(finalScore * 10) / 10, // Round to 1 decimal place
+    description
+  };
+}
+
 function formatTimeFromDate(date: Date): string {
   return date.toLocaleTimeString('en-US', { 
     hour: 'numeric', 
@@ -1050,6 +1162,25 @@ export default function FlightStatus() {
               {/* TURBULENCE ANALYSIS Section */}
               {section.id === 'TURBULENCE' && (
                 <div className="space-y-3">
+                  {/* Main summary text */}
+                  <p className="text-sm text-slate-300">
+                    {turbulenceData ? turbulenceData.summary : "Light chop possible, but everything is on profile. The aircraft is designed for far more than you'll experience today."}
+                  </p>
+                  
+                  {/* Normality Score Chip */}
+                  {(() => {
+                    const normalityData = getNormalityScore(departureAirport, arrivalAirport, phase);
+                    return (
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/[0.04] rounded-full border border-slate-700/50 backdrop-blur-sm">
+                        <span className="text-xs text-gray-400">Normality</span>
+                        <span className="text-xs text-gray-400">·</span>
+                        <span className="text-xs text-sky-300 font-medium">{normalityData.score.toFixed(1)} / 5</span>
+                        <span className="text-xs text-gray-400">·</span>
+                        <span className="text-xs text-gray-300">{normalityData.description}</span>
+                      </div>
+                    );
+                  })()}
+                  
                   {/* Bump Meter - Always show, with demo data if no real data */}
                   <BumpMeter 
                     currentLevel={

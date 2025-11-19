@@ -59,6 +59,75 @@ const AIRLINE_CODES: Record<string, string> = {
   'F9': 'FFT', // Frontier
   'G4': 'AAY', // Allegiant
   'SY': 'SCX', // Sun Country
+  'HA': 'HAL', // Hawaiian Airlines
+};
+
+// Demo flight routes for testing
+const DEMO_ROUTES: Record<string, { from: string; to: string }> = {
+  "UA1234": { from: "ORD", to: "LAX" },
+  "AA2345": { from: "JFK", to: "LAX" },
+  "DL987": { from: "ATL", to: "SEA" },
+  "WN456": { from: "DEN", to: "PHX" },
+  "B6789": { from: "BOS", to: "MCO" },
+  "AS123": { from: "SEA", to: "SFO" },
+  "NK555": { from: "LAS", to: "ORD" },
+  "F9999": { from: "DEN", to: "MIA" },
+  "HA25": { from: "LAX", to: "HNL" },
+};
+
+// Common routes by airline for fallback detection
+const COMMON_ROUTES_BY_AIRLINE: Record<string, Array<{ from: string; to: string; flightRanges?: number[] }>> = {
+  "UA": [
+    { from: "ORD", to: "LAX", flightRanges: [1000, 1999] },
+    { from: "SFO", to: "EWR", flightRanges: [2000, 2999] },
+    { from: "DEN", to: "ORD", flightRanges: [3000, 3999] },
+    { from: "EWR", to: "SFO", flightRanges: [100, 199] },
+  ],
+  "AA": [
+    { from: "DFW", to: "LAX", flightRanges: [2000, 2999] },
+    { from: "JFK", to: "LAX", flightRanges: [1, 99] },
+    { from: "MIA", to: "ORD", flightRanges: [1000, 1999] },
+    { from: "CLT", to: "LAX", flightRanges: [3000, 3999] },
+  ],
+  "DL": [
+    { from: "ATL", to: "LAX", flightRanges: [900, 999] },
+    { from: "DTW", to: "ATL", flightRanges: [1000, 1099] },
+    { from: "MSP", to: "SEA", flightRanges: [2000, 2099] },
+    { from: "ATL", to: "JFK", flightRanges: [500, 599] },
+  ],
+  "WN": [
+    { from: "DEN", to: "PHX", flightRanges: [400, 499] },
+    { from: "LAS", to: "LAX", flightRanges: [1000, 1099] },
+    { from: "MCO", to: "ATL", flightRanges: [2000, 2099] },
+    { from: "PHX", to: "LAS", flightRanges: [3000, 3099] },
+  ],
+  "B6": [
+    { from: "BOS", to: "MCO", flightRanges: [700, 799] },
+    { from: "JFK", to: "LAX", flightRanges: [1000, 1099] },
+    { from: "BOS", to: "LAS", flightRanges: [800, 899] },
+    { from: "JFK", to: "SFO", flightRanges: [900, 999] },
+  ],
+  "AS": [
+    { from: "SEA", to: "LAX", flightRanges: [100, 199] },
+    { from: "SEA", to: "SFO", flightRanges: [200, 299] },
+    { from: "SEA", to: "PHX", flightRanges: [300, 399] },
+    { from: "SEA", to: "DEN", flightRanges: [700, 799] },
+  ],
+  "NK": [
+    { from: "LAS", to: "ORD", flightRanges: [500, 599] },
+    { from: "FLL", to: "LGA", flightRanges: [200, 299] },
+    { from: "MCO", to: "ATL", flightRanges: [700, 799] },
+  ],
+  "F9": [
+    { from: "DEN", to: "MIA", flightRanges: [9000, 9999] },
+    { from: "DEN", to: "MCO", flightRanges: [1000, 1099] },
+    { from: "DEN", to: "LAS", flightRanges: [500, 599] },
+  ],
+  "HA": [
+    { from: "HNL", to: "LAX", flightRanges: [1, 99] },
+    { from: "HNL", to: "SFO", flightRanges: [10, 20] },
+    { from: "LAX", to: "HNL", flightRanges: [20, 30] },
+  ],
 };
 
 // Airport database (expand as needed)
@@ -83,6 +152,9 @@ export const AIRPORTS: Record<string, { lat: number; lon: number; name: string }
   'CLT': { lat: 35.2144, lon: -80.9473, name: 'Charlotte Douglas International' },
   'IAH': { lat: 29.9902, lon: -95.3368, name: 'George Bush Intercontinental' },
   'IAD': { lat: 38.9531, lon: -77.4565, name: 'Washington Dulles International' },
+  'HNL': { lat: 21.3187, lon: -157.9225, name: 'Daniel K. Inouye International' },
+  'FLL': { lat: 26.0742, lon: -80.1506, name: 'Fort Lauderdale-Hollywood International' },
+  'LGA': { lat: 40.7769, lon: -73.8740, name: 'LaGuardia Airport' },
 };
 
 /**
@@ -126,6 +198,53 @@ function determineFlightPhase(altitudeFeet: number, velocityKts: number, onGroun
   if (altitudeFeet < 5000) return velocityKts > 200 ? 'takeoff' : 'landing';
   if (altitudeFeet < 15000) return velocityKts > 250 ? 'climb' : 'descent';
   return 'cruise';
+}
+
+/**
+ * Detect route for a flight based on flight number
+ */
+function detectRoute(flightNumber: string): { from: string; to: string } | null {
+  // First check if it's a demo flight with known route
+  if (DEMO_ROUTES[flightNumber]) {
+    console.log(`Using demo route for ${flightNumber}`);
+    return DEMO_ROUTES[flightNumber];
+  }
+  
+  // Try to extract airline and number
+  const match = flightNumber.match(/^([A-Z]{2})(\d+)$/i);
+  if (!match) {
+    return null;
+  }
+  
+  const [, airline, numberStr] = match;
+  const number = parseInt(numberStr, 10);
+  const routes = COMMON_ROUTES_BY_AIRLINE[airline.toUpperCase()];
+  
+  if (!routes) {
+    // If we don't know this airline, use a default route
+    console.log(`Unknown airline ${airline}, using default route`);
+    return { from: "JFK", to: "LAX" };
+  }
+  
+  // Try to match based on flight number ranges
+  for (const route of routes) {
+    if (route.flightRanges && route.flightRanges.length === 2) {
+      const [min, max] = route.flightRanges;
+      if (number >= min && number <= max) {
+        console.log(`Detected route for ${flightNumber} based on number range: ${route.from} -> ${route.to}`);
+        return { from: route.from, to: route.to };
+      }
+    }
+  }
+  
+  // If no range match, return the first common route for this airline
+  if (routes.length > 0) {
+    console.log(`Using default route for ${airline}: ${routes[0].from} -> ${routes[0].to}`);
+    return { from: routes[0].from, to: routes[0].to };
+  }
+  
+  // Ultimate fallback
+  return { from: "JFK", to: "LAX" };
 }
 
 /**
@@ -189,6 +308,74 @@ export async function searchFlight(flightNumber: string): Promise<FlightData | n
     console.error('Error fetching flight data:', error);
     return null;
   }
+}
+
+/**
+ * Search for a flight and automatically detect its route
+ * Returns flight data along with departure and arrival airports
+ */
+export async function searchFlightWithRoute(
+  flightNumber: string
+): Promise<{ flightData: FlightData; departure: string; arrival: string } | null> {
+  // Detect the route for this flight
+  const route = detectRoute(flightNumber);
+  if (!route) {
+    console.error('Could not detect route for flight:', flightNumber);
+    return null;
+  }
+  
+  // Search for the flight
+  let flightData = await searchFlight(flightNumber);
+  
+  // If flight not found, create simulated data
+  if (!flightData) {
+    console.log(`Flight ${flightNumber} not found, creating simulated data`);
+    
+    const departure = AIRPORTS[route.from];
+    const arrival = AIRPORTS[route.to];
+    
+    if (!departure || !arrival) {
+      console.error('Invalid airports in route:', route);
+      return null;
+    }
+    
+    // Create simulated flight at a random point along the route
+    const progress = Math.random() * 0.6 + 0.2; // Between 20% and 80%
+    const lat = departure.lat + (arrival.lat - departure.lat) * progress;
+    const lon = departure.lon + (arrival.lon - departure.lon) * progress;
+    
+    // Determine altitude based on progress
+    let altitude = 10668; // Default cruise altitude (35000 ft in meters)
+    if (progress < 0.25) {
+      altitude = 3048 + progress * 30000; // Climbing
+    } else if (progress > 0.75) {
+      altitude = 10668 - (progress - 0.75) * 30000; // Descending
+    }
+    
+    flightData = {
+      icao24: `SIM${Date.now()}`,
+      callsign: convertFlightNumberToCallsign(flightNumber),
+      origin_country: "United States",
+      time_position: Date.now() / 1000,
+      last_contact: Date.now() / 1000,
+      longitude: lon,
+      latitude: lat,
+      baro_altitude: altitude,
+      on_ground: false,
+      velocity: 240, // ~465 kts
+      true_track: Math.atan2(arrival.lon - departure.lon, arrival.lat - departure.lat) * 180 / Math.PI,
+      vertical_rate: progress < 0.25 ? 10 : (progress > 0.75 ? -10 : 0),
+      geo_altitude: altitude,
+      squawk: "1234",
+      category: 0,
+    };
+  }
+  
+  return {
+    flightData,
+    departure: route.from,
+    arrival: route.to,
+  };
 }
 
 /**

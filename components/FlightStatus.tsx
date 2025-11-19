@@ -147,6 +147,115 @@ function getPilotActivity(phase: string) {
   };
 }
 
+// --- BumpMeter Component ---
+interface BumpMeterProps {
+  currentLevel: 'smooth' | 'light' | 'moderate' | 'severe';
+}
+
+function BumpMeter({ currentLevel }: BumpMeterProps) {
+  // Map turbulence level to numeric value
+  const getLevelValue = (level: string): number => {
+    switch(level) {
+      case 'smooth': return 0.5;
+      case 'light': return 2.5;
+      case 'moderate': return 4.5;
+      case 'severe': return 6.5;
+      default: return 1;
+    }
+  };
+  
+  const currentValue = getLevelValue(currentLevel);
+  
+  return (
+    <div className="mb-4">
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
+        Bump Meter
+      </h4>
+      
+      {/* Main meter container */}
+      <div className="bg-white/[0.03] rounded-lg p-4 border border-white/5">
+        {/* Bar with gradient */}
+        <div className="relative h-12 rounded-lg bg-gradient-to-r from-emerald-900/30 via-amber-900/30 to-orange-900/30 border border-white/5 overflow-hidden">
+          {/* Background gradient overlay for depth */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent" />
+          
+          {/* Current bumps marker */}
+          <div 
+            className="absolute top-1/2 -translate-y-1/2 transition-all duration-500"
+            style={{left: `${currentValue * 10}%`}}
+          >
+            <div className="relative">
+              {/* Marker line */}
+              <div className="absolute left-1/2 -translate-x-1/2 w-0.5 h-16 bg-sky-400 shadow-[0_0_4px_rgba(56,189,248,0.8)]" />
+              {/* Marker dot */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-6 w-3 h-3 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.8)] border border-white/20" />
+              {/* Label */}
+              <div className="absolute left-1/2 -translate-x-1/2 -top-6 whitespace-nowrap">
+                <span className="text-[10px] uppercase tracking-wider text-sky-400 font-medium px-1.5 py-0.5 bg-slate-950/80 rounded backdrop-blur-sm border border-sky-400/20">
+                  Current bumps
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Certified limit marker */}
+          <div className="absolute top-1/2 -translate-y-1/2 right-0">
+            <div className="relative">
+              {/* Marker line */}
+              <div className="absolute right-0 w-0.5 h-16 bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.8)]" />
+              {/* Marker dot */}
+              <div className="absolute right-[-1.5px] top-6 w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] border border-white/20" />
+              {/* Label */}
+              <div className="absolute right-0 -bottom-8 whitespace-nowrap">
+                <span className="text-[10px] uppercase tracking-wider text-emerald-400 font-medium px-1.5 py-0.5 bg-slate-950/80 rounded backdrop-blur-sm border border-emerald-400/20">
+                  Certified limit
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Scale numbers */}
+        <div className="flex justify-between mt-8 mb-3 px-1">
+          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+            <span 
+              key={n} 
+              className={`text-[10px] font-mono ${
+                n <= currentValue ? 'text-sky-400' : 
+                n === 10 ? 'text-emerald-400' : 
+                'text-slate-600'
+              }`}
+            >
+              {n}
+            </span>
+          ))}
+        </div>
+        
+        {/* Severity scale labels */}
+        <div className="flex justify-between mb-3 text-[9px] uppercase tracking-wider">
+          <span className="text-emerald-400/70">Smooth</span>
+          <span className="text-yellow-400/70">Light</span>
+          <span className="text-amber-400/70">Moderate</span>
+          <span className="text-orange-400/70">Severe</span>
+          <span className="text-red-400/70">Extreme</span>
+        </div>
+        
+        {/* Explanation text */}
+        <div className="mt-4 p-3 bg-white/[0.02] rounded-lg border border-white/5">
+          <p className="text-sm text-slate-300 leading-relaxed">
+            These bumps are around <span className="text-sky-400 font-semibold">{currentValue.toFixed(1)}/10</span>. 
+            Airliners are designed and tested beyond <span className="text-emerald-400 font-semibold">10/10</span> in controlled conditions, 
+            so you're <span className="text-emerald-400 font-semibold">far inside the comfort zone</span>.
+          </p>
+          <p className="text-xs text-slate-400 mt-2">
+            The aircraft structure can handle forces many times stronger than any turbulence you'll ever encounter in commercial flight.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // --- Main Component ---
 export default function FlightStatus() {
   // Flight tracking state
@@ -941,6 +1050,21 @@ export default function FlightStatus() {
               {/* TURBULENCE ANALYSIS Section */}
               {section.id === 'TURBULENCE' && (
                 <div className="space-y-3">
+                  {/* Bump Meter - Always show, with demo data if no real data */}
+                  <BumpMeter 
+                    currentLevel={
+                      enhancedTurbulenceReport?.currentConditions.overall === 'severe' || 
+                      enhancedTurbulenceReport?.currentConditions.overall === 'extreme' ||
+                      turbulenceData?.level === 'severe' || 
+                      turbulenceData?.level === 'extreme' ? 'severe' :
+                      enhancedTurbulenceReport?.currentConditions.overall === 'moderate' ||
+                      turbulenceData?.level === 'moderate' ? 'moderate' :
+                      enhancedTurbulenceReport?.currentConditions.overall === 'light' ||
+                      turbulenceData?.level === 'light' ? 'light' : 
+                      'smooth' // Default to smooth for demo
+                    }
+                  />
+                  
                   {enhancedTurbulenceReport ? (
                     <>
                       {/* Current Conditions Summary */}

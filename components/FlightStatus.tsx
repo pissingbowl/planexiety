@@ -322,6 +322,11 @@ export default function FlightStatus() {
           </div>
         </div>
 
+        {/* Summary status */}
+        <div className="mt-3 text-sm text-gray-300">
+          You're on final approach into LAX. Light chop possible, but everything is on profile.
+        </div>
+
         {/* Accordion sections */}
         <div className="mt-6 space-y-3">
 

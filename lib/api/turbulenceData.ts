@@ -222,7 +222,8 @@ export async function fetchPIREPs(
   }
   
   try {
-    const url = `https://aviationweather.gov/api/data/pirep?format=json`;
+    // Use our API route instead of direct external API call
+    const url = `/api/aviation-weather?type=pirep&format=json`;
     console.log('Fetching PIREPs from:', url);
     
     const response = await fetch(url);
@@ -232,7 +233,10 @@ export async function fetchPIREPs(
       return [];
     }
     
-    const data = await response.json();
+    const responseData = await response.json();
+    
+    // Extract the actual weather data from our API response
+    const data = responseData.data;
     
     if (data && Array.isArray(data)) {
       let pireps: PIREP[] = data.map((pirep: any) => ({
@@ -295,7 +299,8 @@ export async function fetchSIGMETs(): Promise<SIGMET[]> {
   }
   
   try {
-    const url = `https://aviationweather.gov/api/data/airsigmet?format=json&type=sigmet`;
+    // Use our API route instead of direct external API call
+    const url = `/api/aviation-weather?type=sigmet&format=json`;
     console.log('Fetching SIGMETs from:', url);
     
     const response = await fetch(url);
@@ -305,7 +310,10 @@ export async function fetchSIGMETs(): Promise<SIGMET[]> {
       return [];
     }
     
-    const data = await response.json();
+    const responseData = await response.json();
+    
+    // Extract the actual weather data from our API response
+    const data = responseData.data;
     
     if (data && Array.isArray(data)) {
       const sigmets: SIGMET[] = data
@@ -348,7 +356,8 @@ export async function fetchAIRMETs(): Promise<AIRMET[]> {
   }
   
   try {
-    const url = `https://aviationweather.gov/api/data/airsigmet?format=json&type=airmet`;
+    // Use our API route instead of direct external API call
+    const url = `/api/aviation-weather?type=airmet&format=json`;
     console.log('Fetching AIRMETs from:', url);
     
     const response = await fetch(url);
@@ -358,7 +367,10 @@ export async function fetchAIRMETs(): Promise<AIRMET[]> {
       return [];
     }
     
-    const data = await response.json();
+    const responseData = await response.json();
+    
+    // Extract the actual weather data from our API response
+    const data = responseData.data;
     
     if (data && Array.isArray(data)) {
       const airmets: AIRMET[] = data

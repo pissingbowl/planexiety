@@ -202,7 +202,8 @@ export async function fetchMETAR(airportCode: string): Promise<METARData | null>
   }
   
   try {
-    const url = `https://aviationweather.gov/api/data/metar?ids=${airportCode}&format=json`;
+    // Use our API route instead of direct external API call
+    const url = `/api/aviation-weather?type=metar&ids=${airportCode}&format=json`;
     console.log('Fetching METAR from:', url);
     
     const response = await fetch(url);
@@ -212,7 +213,10 @@ export async function fetchMETAR(airportCode: string): Promise<METARData | null>
       return null;
     }
     
-    const data = await response.json();
+    const responseData = await response.json();
+    
+    // Extract the actual weather data from our API response
+    const data = responseData.data;
     
     if (data && data.length > 0) {
       const metar = data[0];
@@ -260,7 +264,8 @@ export async function fetchTAF(airportCode: string): Promise<TAFData | null> {
   }
   
   try {
-    const url = `https://aviationweather.gov/api/data/taf?ids=${airportCode}&format=json`;
+    // Use our API route instead of direct external API call
+    const url = `/api/aviation-weather?type=taf&ids=${airportCode}&format=json`;
     console.log('Fetching TAF from:', url);
     
     const response = await fetch(url);
@@ -270,7 +275,10 @@ export async function fetchTAF(airportCode: string): Promise<TAFData | null> {
       return null;
     }
     
-    const data = await response.json();
+    const responseData = await response.json();
+    
+    // Extract the actual weather data from our API response
+    const data = responseData.data;
     
     if (data && data.length > 0) {
       const taf = data[0];

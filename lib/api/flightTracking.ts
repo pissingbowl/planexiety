@@ -262,38 +262,40 @@ export async function searchFlight(flightNumber: string): Promise<FlightData | n
   }
   
   try {
-    // First try to search by callsign
-    const url = `https://opensky-network.org/api/states/all?callsign=${encodeURIComponent(callsign)}`;
-    console.log('Fetching flight data from OpenSky:', url);
+    // Use our API route instead of direct OpenSky API
+    const url = `/api/flight-tracking?flight=${encodeURIComponent(flightNumber)}`;
+    console.log('Fetching flight data from API:', url);
     
     const response = await fetch(url);
     
     if (!response.ok) {
-      console.error('OpenSky API error:', response.status);
+      console.error('Flight tracking API error:', response.status);
       return null;
     }
     
     const data = await response.json();
     
-    if (data && data.states && data.states.length > 0) {
-      // Take the first matching flight
-      const state = data.states[0];
+    if (data && data.flight) {
+      // Convert from API response format to FlightData format
       const flightData: FlightData = {
-        icao24: state[0],
-        callsign: state[1] ? state[1].trim() : callsign,
-        origin_country: state[2],
-        time_position: state[3],
-        last_contact: state[4],
-        longitude: state[5],
-        latitude: state[6],
-        baro_altitude: state[7],
-        on_ground: state[8],
-        velocity: state[9],
-        true_track: state[10],
-        vertical_rate: state[11],
-        geo_altitude: state[13],
-        squawk: state[14],
-        category: state[17] || 0,
+        icao24: data.flight.icao24,
+        callsign: data.flight.callsign || callsign,
+        origin_country: data.flight.origin_country,
+        time_position: data.flight.time_position,
+        last_contact: data.flight.last_contact,
+        longitude: data.flight.longitude,
+        latitude: data.flight.latitude,
+        // Convert altitude from feet to meters for consistency
+        baro_altitude: data.flight.altitude_ft ? data.flight.altitude_ft / 3.28084 : data.flight.baro_altitude,
+        on_ground: data.flight.on_ground,
+        // Convert velocity from knots to m/s for consistency
+        velocity: data.flight.velocity_kts ? data.flight.velocity_kts / 1.94384 : data.flight.velocity,
+        true_track: data.flight.true_track,
+        // Convert vertical rate from fpm to m/s for consistency
+        vertical_rate: data.flight.vertical_rate_fpm ? data.flight.vertical_rate_fpm / 196.85 : data.flight.vertical_rate,
+        geo_altitude: data.flight.geo_altitude_ft ? data.flight.geo_altitude_ft / 3.28084 : data.flight.geo_altitude,
+        squawk: data.flight.squawk,
+        category: data.flight.category || 0,
       };
       
       // Cache the result
@@ -302,7 +304,7 @@ export async function searchFlight(flightNumber: string): Promise<FlightData | n
       return flightData;
     }
     
-    console.log('No flight found for callsign:', callsign);
+    console.log('No flight found for:', flightNumber);
     return null;
     
   } catch (error) {
@@ -591,35 +593,40 @@ export async function getFlightsInArea(
   };
   
   try {
-    const url = `https://opensky-network.org/api/states/all?lamin=${bounds.lamin}&lomin=${bounds.lomin}&lamax=${bounds.lamax}&lomax=${bounds.lomax}`;
+    // Use our API route with bounding box
+    const bbox = `${bounds.lamin},${bounds.lomin},${bounds.lamax},${bounds.lomax}`;
+    const url = `/api/flight-tracking?bbox=${encodeURIComponent(bbox)}`;
     const response = await fetch(url);
     
     if (!response.ok) {
-      console.error('OpenSky API error:', response.status);
+      console.error('Flight tracking API error:', response.status);
       return [];
     }
     
     const data = await response.json();
     
-    if (data && data.states) {
-      return data.states
-        .filter((state: any[]) => state[5] !== null && state[6] !== null)
-        .map((state: any[]) => ({
-          icao24: state[0],
-          callsign: state[1] ? state[1].trim() : "N/A",
-          origin_country: state[2],
-          time_position: state[3],
-          last_contact: state[4],
-          longitude: state[5],
-          latitude: state[6],
-          baro_altitude: state[7],
-          on_ground: state[8],
-          velocity: state[9],
-          true_track: state[10],
-          vertical_rate: state[11],
-          geo_altitude: state[13],
-          squawk: state[14],
-          category: state[17] || 0,
+    if (data && data.flights) {
+      return data.flights
+        .filter((flight: any) => flight.longitude !== null && flight.latitude !== null)
+        .map((flight: any) => ({
+          icao24: flight.icao24,
+          callsign: flight.callsign || "N/A",
+          origin_country: flight.origin_country,
+          time_position: flight.time_position,
+          last_contact: flight.last_contact,
+          longitude: flight.longitude,
+          latitude: flight.latitude,
+          // Convert altitude from feet to meters if needed
+          baro_altitude: flight.altitude_ft ? flight.altitude_ft / 3.28084 : flight.baro_altitude,
+          on_ground: flight.on_ground,
+          // Convert velocity from knots to m/s if needed
+          velocity: flight.velocity_kts ? flight.velocity_kts / 1.94384 : flight.velocity,
+          true_track: flight.true_track,
+          // Convert vertical rate from fpm to m/s if needed
+          vertical_rate: flight.vertical_rate_fpm ? flight.vertical_rate_fpm / 196.85 : flight.vertical_rate,
+          geo_altitude: flight.geo_altitude_ft ? flight.geo_altitude_ft / 3.28084 : flight.geo_altitude,
+          squawk: flight.squawk,
+          category: flight.category || 0,
         }));
     }
     

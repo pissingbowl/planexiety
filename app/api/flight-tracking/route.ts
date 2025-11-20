@@ -1,6 +1,7 @@
 // app/api/flight-tracking/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
+import { generateDemoFlight, generateDemoFlightsInArea } from '@/lib/demoFlightGenerator';
 
 // OpenSky Network API base URL
 const OPENSKY_BASE = 'https://opensky-network.org/api';
@@ -171,27 +172,53 @@ export async function GET(request: NextRequest) {
     if (!response.ok) {
       console.error('OpenSky API error:', response.status, response.statusText);
       
-      if (response.status === 404) {
-        return NextResponse.json(
-          { error: 'Flight data not found' },
-          { status: 404 }
-        );
-      } else if (response.status === 429) {
-        return NextResponse.json(
-          { error: 'Rate limit exceeded. Please try again later.' },
-          { status: 429 }
-        );
-      } else if (response.status === 503) {
-        return NextResponse.json(
-          { error: 'OpenSky Network service temporarily unavailable' },
-          { status: 503 }
-        );
+      // When OpenSky is unavailable, return demo data
+      if (flightNumber) {
+        console.log(`OpenSky unavailable, generating demo data for ${flightNumber}...`);
+        try {
+          const demoFlight = generateDemoFlight(flightNumber);
+          return NextResponse.json({
+            timestamp: new Date().toISOString(),
+            flight: demoFlight,
+            message: 'Flight data (demo - OpenSky unavailable)',
+            is_demo: true,
+            demo_notice: `OpenSky Network is currently unavailable. Showing simulated flight data for ${flightNumber}.`,
+            total: 1,
+          });
+        } catch (demoError) {
+          const fallbackDemoFlight = generateDemoFlight('UA456');
+          return NextResponse.json({
+            timestamp: new Date().toISOString(),
+            flight: { ...fallbackDemoFlight, callsign: convertFlightNumberToCallsign(flightNumber) },
+            message: 'Flight data (demo - OpenSky unavailable)',
+            is_demo: true,
+            demo_notice: `OpenSky Network is currently unavailable. Showing simulated flight data.`,
+            total: 1,
+          });
+        }
+      } else if (bbox) {
+        // For area searches, generate demo flights in the area
+        console.log(`OpenSky unavailable, generating demo flights for area...`);
+        const [lamin, lomin, lamax, lomax] = bbox.split(',').map(Number);
+        const demoFlights = generateDemoFlightsInArea(lamin, lomin, lamax, lomax, 10);
+        return NextResponse.json({
+          timestamp: new Date().toISOString(),
+          flights: demoFlights,
+          message: 'Flight data (demo - OpenSky unavailable)',
+          is_demo: true,
+          demo_notice: 'OpenSky Network is currently unavailable. Showing simulated flight data.',
+          total: demoFlights.length,
+        });
       }
       
-      return NextResponse.json(
-        { error: `OpenSky API error: ${response.status}` },
-        { status: response.status }
-      );
+      // For other cases, return error but with helpful message
+      return NextResponse.json({
+        timestamp: new Date().toISOString(),
+        flights: [],
+        message: `OpenSky Network unavailable (${response.status}). Try searching for specific flights like UA622, DL123, or AA456 to see demo data.`,
+        is_demo: false,
+        total: 0,
+      });
     }
     
     // Parse response
@@ -226,65 +253,44 @@ export async function GET(request: NextRequest) {
           );
       }
       
-      // If still no match, try airline prefix match to suggest alternatives
+      // If still no match, generate demo flight data
       if (flights.length === 0) {
-        const partialCallsign = callsign.substring(0, 3); // Get airline code
-        const sameAirlineFlights = data.states.map(parseStateVector).map(convertToAviationUnits)
-          .filter((f: any) => 
-            f.callsign && f.callsign.toUpperCase().startsWith(partialCallsign)
-          )
-          .slice(0, 5); // Get up to 5 flights from the same airline
+        console.log(`Flight ${flightNumber} not found in OpenSky, generating demo data...`);
+        
+        try {
+          // Generate demo flight data
+          const demoFlight = generateDemoFlight(flightNumber);
           
-        // Get some currently tracked flights as suggestions
-        const trackedFlights = data.states
-          .slice(0, 10)
-          .map(parseStateVector)
-          .map(convertToAviationUnits)
-          .filter((f: any) => f.callsign && !f.on_ground)
-          .map((f: any) => {
-            // Try to convert back to flight number format
-            const callsign = f.callsign.trim();
-            for (const [code, prefix] of Object.entries(AIRLINE_CODES)) {
-              if (callsign.startsWith(prefix)) {
-                return `${code}${callsign.substring(3)}`;
-              }
-            }
-            return callsign;
+          return NextResponse.json({
+            timestamp: new Date().toISOString(),
+            flight: demoFlight,
+            message: 'Flight data (demo)',
+            is_demo: true,
+            demo_notice: `This is simulated flight data for testing. Real-time tracking not available for ${flightNumber}.`,
+            total: 1,
+          }, {
+            headers: {
+              'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+            },
           });
+        } catch (demoError) {
+          console.error(`Error generating demo flight for ${flightNumber}:`, demoError);
           
-        return NextResponse.json({
-          timestamp: new Date().toISOString(),
-          flight: null,
-          message: `Flight ${flightNumber} not found. The flight may not be airborne, landed, or not tracked by OpenSky Network.`,
-          searched_callsign: callsign,
-          suggestions: {
-            sample_flights: SAMPLE_FLIGHTS.map(f => ({
-              flight: f.flight,
-              route: f.route,
-              description: f.description
-            })),
-            same_airline: sameAirlineFlights.length > 0 ? 
-              sameAirlineFlights.map((f: any) => {
-                const cs = f.callsign.trim();
-                // Try to convert back to flight number
-                for (const [code, prefix] of Object.entries(AIRLINE_CODES)) {
-                  if (cs.startsWith(prefix)) {
-                    return {
-                      flight: `${code}${cs.substring(3)}`,
-                      callsign: cs,
-                      altitude_ft: f.altitude_ft,
-                      velocity_kts: f.velocity_kts
-                    };
-                  }
-                }
-                return { flight: cs, callsign: cs, altitude_ft: f.altitude_ft, velocity_kts: f.velocity_kts };
-              }) : [],
-            currently_tracked: trackedFlights.slice(0, 5),
-            message: sameAirlineFlights.length > 0 ? 
-              `Found ${sameAirlineFlights.length} other flights from the same airline currently in the air.` :
-              'Try one of the sample flights above or check if your flight number is correct.'
-          }
-        }, { status: 404 });
+          // If demo generation fails, return a generic demo flight
+          const fallbackDemoFlight = generateDemoFlight('UA456'); // Use a known good route
+          return NextResponse.json({
+            timestamp: new Date().toISOString(),
+            flight: { ...fallbackDemoFlight, callsign: callsign },
+            message: 'Flight data (demo)',
+            is_demo: true,
+            demo_notice: `This is simulated flight data for testing. Real-time tracking not available for ${flightNumber}.`,
+            total: 1,
+          }, {
+            headers: {
+              'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
+            },
+          });
+        }
       }
     }
     
@@ -317,25 +323,57 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error in flight-tracking API route:', error);
     
-    // Check if it's a network error
-    if (error instanceof TypeError && error.message.includes('fetch')) {
-      return NextResponse.json(
-        { 
-          error: 'Unable to connect to OpenSky Network',
-          details: 'The service might be temporarily unavailable. Please try again later.',
-        },
-        { status: 503 }
-      );
+    // When there's any error, try to return demo data instead
+    const { searchParams } = request.nextUrl;
+    const flightNumber = searchParams.get('flight');
+    const bbox = searchParams.get('bbox');
+    
+    if (flightNumber) {
+      console.log(`Error fetching real data, generating demo for ${flightNumber}...`);
+      try {
+        const demoFlight = generateDemoFlight(flightNumber);
+        return NextResponse.json({
+          timestamp: new Date().toISOString(),
+          flight: demoFlight,
+          message: 'Flight data (demo)',
+          is_demo: true,
+          demo_notice: `Using simulated flight data for ${flightNumber}.`,
+          total: 1,
+        });
+      } catch (demoError) {
+        // Even demo generation failed, use a fallback
+        const fallbackDemoFlight = generateDemoFlight('UA456');
+        return NextResponse.json({
+          timestamp: new Date().toISOString(),
+          flight: { ...fallbackDemoFlight, callsign: convertFlightNumberToCallsign(flightNumber) },
+          message: 'Flight data (demo)',
+          is_demo: true,
+          demo_notice: `Using simulated flight data.`,
+          total: 1,
+        });
+      }
+    } else if (bbox) {
+      console.log(`Error fetching real data, generating demo flights for area...`);
+      const [lamin, lomin, lamax, lomax] = bbox.split(',').map(Number);
+      const demoFlights = generateDemoFlightsInArea(lamin, lomin, lamax, lomax, 10);
+      return NextResponse.json({
+        timestamp: new Date().toISOString(),
+        flights: demoFlights,
+        message: 'Flight data (demo)',
+        is_demo: true,
+        demo_notice: 'Using simulated flight data.',
+        total: demoFlights.length,
+      });
     }
     
-    // Generic error response
-    return NextResponse.json(
-      { 
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error occurred',
-      },
-      { status: 500 }
-    );
+    // For other cases, still return an empty list but with helpful message
+    return NextResponse.json({
+      timestamp: new Date().toISOString(),
+      flights: [],
+      message: 'Service temporarily unavailable. Search for specific flights like UA622, DL123, or AA456 to see demo data.',
+      is_demo: false,
+      total: 0,
+    });
   }
 }
 

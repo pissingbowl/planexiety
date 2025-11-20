@@ -37,7 +37,7 @@ export default function Home() {
       
       <div className="w-full max-w-4xl space-y-8 relative z-10">
         <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">OTIE</h1>
+          <h1 className="text-8xl md:text-9xl font-bold mb-6 tracking-wider bg-gradient-to-r from-sky-400 via-blue-400 to-sky-500 bg-clip-text text-transparent">OTIE</h1>
           <p className="text-center max-w-xl mx-auto text-lg text-gray-300">
             Your in-flight companion for turbulence, timing, and truth.
           </p>

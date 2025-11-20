@@ -26,12 +26,12 @@ const AIRLINES = [
 
 // Demo flights with predefined routes
 const DEMO_FLIGHTS = [
-  { airline: "UA", number: "1234", from: "ORD", to: "LAX", display: "UA1234 (Chicago → Los Angeles)" },
-  { airline: "AA", number: "2345", from: "JFK", to: "LAX", display: "AA2345 (New York → Los Angeles)" },
-  { airline: "DL", number: "987", from: "ATL", to: "SEA", display: "DL987 (Atlanta → Seattle)" },
-  { airline: "WN", number: "456", from: "DEN", to: "PHX", display: "WN456 (Denver → Phoenix)" },
-  { airline: "B6", number: "789", from: "BOS", to: "MCO", display: "B6789 (Boston → Orlando)" },
-  { airline: "AS", number: "123", from: "SEA", to: "SFO", display: "AS123 (Seattle → San Francisco)" },
+  { airline: "UA", number: "456", from: "SFO", to: "EWR", display: "UA456 (San Francisco → Newark)" },
+  { airline: "UA", number: "622", from: "DEN", to: "ORD", display: "UA622 (Denver → Chicago)" },
+  { airline: "DL", number: "123", from: "ATL", to: "LAX", display: "DL123 (Atlanta → Los Angeles)" },
+  { airline: "AA", number: "100", from: "JFK", to: "LHR", display: "AA100 (New York → London)" },
+  { airline: "WN", number: "737", from: "LAS", to: "LAX", display: "WN737 (Las Vegas → Los Angeles)" },
+  { airline: "B6", number: "915", from: "JFK", to: "LAX", display: "B6915 (JFK → Los Angeles)" },
 ];
 
 export function FlightInput({ 
@@ -137,7 +137,22 @@ export function FlightInput({
         // Clear success message after 3 seconds
         setTimeout(() => setSuccess(false), 3000);
       } else {
-        setError(`Could not find flight ${fullFlightNumber} or detect its route. Please try another flight.`);
+        // Try to fetch suggestions from API
+        try {
+          const response = await fetch(`/api/flight-tracking?flight=${encodeURIComponent(fullFlightNumber)}`);
+          const data = await response.json();
+          
+          if (data.suggestions && data.suggestions.sample_flights) {
+            const suggestions = data.suggestions.sample_flights.slice(0, 3)
+              .map((f: any) => f.flight)
+              .join(', ');
+            setError(`Flight ${fullFlightNumber} not found. The flight may not be airborne or not tracked. Try one of these: ${suggestions}`);
+          } else {
+            setError(`Could not find flight ${fullFlightNumber}. The flight may not be airborne. Try a demo flight below or check if your flight number is correct.`);
+          }
+        } catch {
+          setError(`Could not find flight ${fullFlightNumber}. The flight may not be airborne. Try a demo flight below.`);
+        }
       }
     } catch (err) {
       console.error('Search error:', err);

@@ -5,8 +5,9 @@ import { NextRequest, NextResponse } from 'next/server';
 // OpenSky Network API base URL
 const OPENSKY_BASE = 'https://opensky-network.org/api';
 
-// Airline codes mapped to their callsign prefixes
+// Comprehensive airline codes mapped to their callsign prefixes
 const AIRLINE_CODES: Record<string, string> = {
+  // Major US Airlines
   'AA': 'AAL', // American Airlines
   'DL': 'DAL', // Delta
   'UA': 'UAL', // United
@@ -18,6 +19,8 @@ const AIRLINE_CODES: Record<string, string> = {
   'G4': 'AAY', // Allegiant
   'SY': 'SCX', // Sun Country
   'HA': 'HAL', // Hawaiian Airlines
+  
+  // International Airlines
   'BA': 'BAW', // British Airways
   'LH': 'DLH', // Lufthansa
   'AF': 'AFR', // Air France
@@ -25,7 +28,40 @@ const AIRLINE_CODES: Record<string, string> = {
   'EK': 'UAE', // Emirates
   'QF': 'QFA', // Qantas
   'AC': 'ACA', // Air Canada
+  'VS': 'VIR', // Virgin Atlantic
+  'AZ': 'AZA', // Alitalia
+  'IB': 'IBE', // Iberia
+  'QR': 'QTR', // Qatar Airways
+  'SQ': 'SIA', // Singapore Airlines
+  'CX': 'CPA', // Cathay Pacific
+  'JL': 'JAL', // Japan Airlines
+  'NH': 'ANA', // All Nippon Airways
+  'TK': 'THY', // Turkish Airlines
+  'EY': 'ETD', // Etihad
+  'SV': 'SVA', // Saudia
+  'AI': 'AIC', // Air India
+  'LX': 'SWR', // Swiss
+  'OS': 'AUA', // Austrian
+  'SK': 'SAS', // SAS
+  'AY': 'FIN', // Finnair
+  'TP': 'TAP', // TAP Portugal
+  'AB': 'BER', // Air Berlin
+  'U2': 'EZY', // easyJet
+  'FR': 'RYR', // Ryanair
+  'WZ': 'WZZ', // Wizz Air
 };
+
+// Sample flights that are commonly in the air (for demo/fallback)
+const SAMPLE_FLIGHTS = [
+  { flight: "UA456", callsign: "UAL456", route: "SFO to EWR", description: "United transcontinental" },
+  { flight: "DL123", callsign: "DAL123", route: "ATL to LAX", description: "Delta cross-country" },
+  { flight: "AA100", callsign: "AAL100", route: "JFK to LHR", description: "American transatlantic" },
+  { flight: "WN737", callsign: "SWA737", route: "DEN to PHX", description: "Southwest regional" },
+  { flight: "B6915", callsign: "JBU915", route: "BOS to MCO", description: "JetBlue vacation route" },
+  { flight: "AS301", callsign: "ASA301", route: "SEA to LAX", description: "Alaska west coast" },
+  { flight: "BA112", callsign: "BAW112", route: "LHR to JFK", description: "British Airways transatlantic" },
+  { flight: "LH400", callsign: "DLH400", route: "FRA to JFK", description: "Lufthansa international" },
+];
 
 /**
  * Convert flight number to OpenSky callsign format
@@ -176,26 +212,79 @@ export async function GET(request: NextRequest) {
     // Filter by flight number if provided
     if (flightNumber) {
       const callsign = convertFlightNumberToCallsign(flightNumber);
+      
+      // Try exact match first
       flights = flights.filter((f: any) => 
-        f.callsign && f.callsign.toUpperCase().includes(callsign)
+        f.callsign && f.callsign.trim().toUpperCase() === callsign
       );
       
+      // If no exact match, try contains match
       if (flights.length === 0) {
-        // Try alternative matching (partial match)
-        const partialCallsign = callsign.substring(0, 3); // Get airline code
         flights = data.states.map(parseStateVector).map(convertToAviationUnits)
           .filter((f: any) => 
-            f.callsign && f.callsign.toUpperCase().startsWith(partialCallsign)
+            f.callsign && f.callsign.toUpperCase().includes(callsign)
           );
+      }
+      
+      // If still no match, try airline prefix match to suggest alternatives
+      if (flights.length === 0) {
+        const partialCallsign = callsign.substring(0, 3); // Get airline code
+        const sameAirlineFlights = data.states.map(parseStateVector).map(convertToAviationUnits)
+          .filter((f: any) => 
+            f.callsign && f.callsign.toUpperCase().startsWith(partialCallsign)
+          )
+          .slice(0, 5); // Get up to 5 flights from the same airline
           
-        if (flights.length === 0) {
-          return NextResponse.json({
-            timestamp: new Date().toISOString(),
-            flight: null,
-            message: `No flight found with number ${flightNumber}. The flight may not be airborne or may not be tracked.`,
-            searched_callsign: callsign,
-          }, { status: 404 });
-        }
+        // Get some currently tracked flights as suggestions
+        const trackedFlights = data.states
+          .slice(0, 10)
+          .map(parseStateVector)
+          .map(convertToAviationUnits)
+          .filter((f: any) => f.callsign && !f.on_ground)
+          .map((f: any) => {
+            // Try to convert back to flight number format
+            const callsign = f.callsign.trim();
+            for (const [code, prefix] of Object.entries(AIRLINE_CODES)) {
+              if (callsign.startsWith(prefix)) {
+                return `${code}${callsign.substring(3)}`;
+              }
+            }
+            return callsign;
+          });
+          
+        return NextResponse.json({
+          timestamp: new Date().toISOString(),
+          flight: null,
+          message: `Flight ${flightNumber} not found. The flight may not be airborne, landed, or not tracked by OpenSky Network.`,
+          searched_callsign: callsign,
+          suggestions: {
+            sample_flights: SAMPLE_FLIGHTS.map(f => ({
+              flight: f.flight,
+              route: f.route,
+              description: f.description
+            })),
+            same_airline: sameAirlineFlights.length > 0 ? 
+              sameAirlineFlights.map((f: any) => {
+                const cs = f.callsign.trim();
+                // Try to convert back to flight number
+                for (const [code, prefix] of Object.entries(AIRLINE_CODES)) {
+                  if (cs.startsWith(prefix)) {
+                    return {
+                      flight: `${code}${cs.substring(3)}`,
+                      callsign: cs,
+                      altitude_ft: f.altitude_ft,
+                      velocity_kts: f.velocity_kts
+                    };
+                  }
+                }
+                return { flight: cs, callsign: cs, altitude_ft: f.altitude_ft, velocity_kts: f.velocity_kts };
+              }) : [],
+            currently_tracked: trackedFlights.slice(0, 5),
+            message: sameAirlineFlights.length > 0 ? 
+              `Found ${sameAirlineFlights.length} other flights from the same airline currently in the air.` :
+              'Try one of the sample flights above or check if your flight number is correct.'
+          }
+        }, { status: 404 });
       }
     }
     

@@ -47,8 +47,9 @@ export interface FlightRoute {
 const flightCache = new Map<string, { data: FlightData; timestamp: number }>();
 const CACHE_DURATION = 30000; // 30 seconds
 
-// Major airline codes mapped to their callsign prefixes
+// Comprehensive airline codes mapped to their callsign prefixes
 const AIRLINE_CODES: Record<string, string> = {
+  // Major US Airlines
   'AA': 'AAL', // American Airlines
   'DL': 'DAL', // Delta
   'UA': 'UAL', // United
@@ -60,20 +61,88 @@ const AIRLINE_CODES: Record<string, string> = {
   'G4': 'AAY', // Allegiant
   'SY': 'SCX', // Sun Country
   'HA': 'HAL', // Hawaiian Airlines
+  
+  // International Airlines
+  'BA': 'BAW', // British Airways
+  'LH': 'DLH', // Lufthansa
+  'AF': 'AFR', // Air France
+  'KL': 'KLM', // KLM
+  'EK': 'UAE', // Emirates
+  'QF': 'QFA', // Qantas
+  'AC': 'ACA', // Air Canada
+  'VS': 'VIR', // Virgin Atlantic
+  'AZ': 'AZA', // Alitalia
+  'IB': 'IBE', // Iberia
+  'QR': 'QTR', // Qatar Airways
+  'SQ': 'SIA', // Singapore Airlines
+  'CX': 'CPA', // Cathay Pacific
+  'JL': 'JAL', // Japan Airlines
+  'NH': 'ANA', // All Nippon Airways
+  'TK': 'THY', // Turkish Airlines
+  'EY': 'ETD', // Etihad
+  'SV': 'SVA', // Saudia
+  'AI': 'AIC', // Air India
+  'LX': 'SWR', // Swiss
+  'OS': 'AUA', // Austrian
+  'SK': 'SAS', // SAS
+  'AY': 'FIN', // Finnair
+  'TP': 'TAP', // TAP Portugal
 };
 
-// Demo flight routes for testing
+// Demo flight routes for testing  
 const DEMO_ROUTES: Record<string, { from: string; to: string }> = {
+  // United Airlines
+  "UA456": { from: "SFO", to: "EWR" },
+  "UA622": { from: "DEN", to: "ORD" },
   "UA1234": { from: "ORD", to: "LAX" },
-  "AA2345": { from: "JFK", to: "LAX" },
+  "UA377": { from: "DEN", to: "ORD" },
+  
+  // Delta Airlines
+  "DL123": { from: "ATL", to: "LAX" },
   "DL987": { from: "ATL", to: "SEA" },
+  "DL456": { from: "JFK", to: "LAX" },
+  "DL789": { from: "MSP", to: "PHX" },
+  
+  // American Airlines
+  "AA100": { from: "JFK", to: "LHR" },
+  "AA2345": { from: "DFW", to: "LAX" },
+  "AA500": { from: "MIA", to: "ORD" },
+  
+  // Southwest
   "WN456": { from: "DEN", to: "PHX" },
+  "WN737": { from: "LAS", to: "LAX" },
+  "WN1234": { from: "MCO", to: "ATL" },
+  
+  // JetBlue
   "B6789": { from: "BOS", to: "MCO" },
+  "B6915": { from: "JFK", to: "LAX" },
+  "B6123": { from: "BOS", to: "LAS" },
+  
+  // Alaska
   "AS123": { from: "SEA", to: "SFO" },
+  "AS301": { from: "SEA", to: "LAX" },
+  "AS456": { from: "SEA", to: "PHX" },
+  
+  // International
+  "BA112": { from: "LHR", to: "JFK" },
+  "LH400": { from: "FRA", to: "JFK" },
+  "AF006": { from: "CDG", to: "JFK" },
+  
+  // Other US Airlines
   "NK555": { from: "LAS", to: "ORD" },
   "F9999": { from: "DEN", to: "MIA" },
   "HA25": { from: "LAX", to: "HNL" },
 };
+
+// Sample flights that are commonly tracked (for user suggestions)
+export const SAMPLE_FLIGHTS_FOR_TESTING = [
+  { flight: "UA456", description: "United (SFO → Newark)" },
+  { flight: "DL123", description: "Delta (Atlanta → LA)" },
+  { flight: "AA100", description: "American (JFK → London)" },
+  { flight: "WN737", description: "Southwest (Vegas → LA)" },
+  { flight: "B6915", description: "JetBlue (JFK → LA)" },
+  { flight: "AS301", description: "Alaska (Seattle → LA)" },
+];
 
 // Common routes by airline for fallback detection
 const COMMON_ROUTES_BY_AIRLINE: Record<string, Array<{ from: string; to: string; flightRanges?: number[] }>> = {
@@ -131,8 +200,9 @@ const COMMON_ROUTES_BY_AIRLINE: Record<string, Array<{ from: string; to: string;
   ],
 };
 
-// Airport database (expand as needed)
+// Airport database (expanded)
 export const AIRPORTS: Record<string, { lat: number; lon: number; name: string }> = {
+  // US Airports
   'LAX': { lat: 33.9425, lon: -118.4081, name: 'Los Angeles International' },
   'ORD': { lat: 41.9786, lon: -87.9048, name: "Chicago O'Hare International" },
   'JFK': { lat: 40.6413, lon: -73.7781, name: 'John F. Kennedy International' },
@@ -156,6 +226,18 @@ export const AIRPORTS: Record<string, { lat: number; lon: number; name: string }
   'HNL': { lat: 21.3187, lon: -157.9225, name: 'Daniel K. Inouye International' },
   'FLL': { lat: 26.0742, lon: -80.1506, name: 'Fort Lauderdale-Hollywood International' },
   'LGA': { lat: 40.7769, lon: -73.8740, name: 'LaGuardia Airport' },
+  
+  // International Airports
+  'LHR': { lat: 51.4700, lon: -0.4543, name: 'London Heathrow' },
+  'FRA': { lat: 50.0379, lon: 8.5622, name: 'Frankfurt Airport' },
+  'CDG': { lat: 49.0097, lon: 2.5479, name: 'Paris Charles de Gaulle' },
+  'AMS': { lat: 52.3105, lon: 4.7683, name: 'Amsterdam Schiphol' },
+  'DXB': { lat: 25.2532, lon: 55.3657, name: 'Dubai International' },
+  'HKG': { lat: 22.3080, lon: 113.9185, name: 'Hong Kong International' },
+  'SIN': { lat: 1.3644, lon: 103.9915, name: 'Singapore Changi' },
+  'NRT': { lat: 35.7720, lon: 140.3929, name: 'Tokyo Narita' },
+  'YYZ': { lat: 43.6777, lon: -79.6248, name: 'Toronto Pearson' },
+  'SYD': { lat: -33.9461, lon: 151.1772, name: 'Sydney Kingsford Smith' },
 };
 
 /**

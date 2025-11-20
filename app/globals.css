@@ -100,12 +100,79 @@ body {
   }
 }
 
+@keyframes levitate {
+  0% { 
+    top: 10%;
+    right: 10%;
+    transform: translateY(0px) translateX(0px) scale(1) rotate(0deg); 
+  }
+  10% {
+    top: 20%;
+    right: 25%;
+    transform: translateY(-10px) translateX(5px) scale(1.02) rotate(2deg);
+  }
+  20% { 
+    top: 40%;
+    right: 15%;
+    transform: translateY(-15px) translateX(10px) scale(1.05) rotate(-3deg); 
+  }
+  30% {
+    top: 60%;
+    right: 5%;
+    transform: translateY(5px) translateX(-5px) scale(0.98) rotate(1deg);
+  }
+  40% { 
+    top: 70%;
+    right: 20%;
+    transform: translateY(-20px) translateX(-10px) scale(1.03) rotate(-2deg); 
+  }
+  50% {
+    top: 65%;
+    right: 40%;
+    transform: translateY(0px) translateX(0px) scale(1) rotate(0deg);
+  }
+  60% { 
+    top: 50%;
+    right: 50%;
+    transform: translateY(10px) translateX(8px) scale(1.04) rotate(3deg); 
+  }
+  70% {
+    top: 30%;
+    right: 35%;
+    transform: translateY(-8px) translateX(-12px) scale(0.97) rotate(-1deg);
+  }
+  80% { 
+    top: 15%;
+    right: 20%;
+    transform: translateY(5px) translateX(5px) scale(1.02) rotate(2deg); 
+  }
+  90% {
+    top: 8%;
+    right: 12%;
+    transform: translateY(-5px) translateX(-3px) scale(1.01) rotate(-1deg);
+  }
+  100% { 
+    top: 10%;
+    right: 10%;
+    transform: translateY(0px) translateX(0px) scale(1) rotate(0deg); 
+  }
+}
+
 .float-animation {
   animation: 
     float 28s ease-in-out infinite,
     breathe 6s ease-in-out infinite,
     tentacleSway 12s ease-in-out infinite;
   transform-origin: center 40%;
+}
+
+.levitate-animation {
+  animation: 
+    levitate 60s cubic-bezier(0.4, 0.0, 0.6, 1) infinite,
+    breathe 6s ease-in-out infinite,
+    tentacleSway 12s ease-in-out infinite;
+  transform-origin: center 40%;
+  will-change: transform, top, right;
 }
 
 /* Leaflet styles fix for Next.js */

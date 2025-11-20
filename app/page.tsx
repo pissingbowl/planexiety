@@ -6,31 +6,31 @@ export default function Home() {
     <main className="flex flex-col items-center min-h-screen bg-gradient-to-b from-gray-900 via-gray-950 to-blue-950 text-white py-8 px-4 relative overflow-hidden">
       {/* OTIE Bubble Effect - creates visibility outline */}
       <div 
-        className="fixed bottom-16 right-6 w-80 h-80 opacity-[0.25] pointer-events-none float-animation"
+        className="fixed w-80 h-80 opacity-[0.45] pointer-events-none levitate-animation"
         style={{
-          background: 'radial-gradient(circle at center, transparent 30%, rgba(147, 197, 253, 0.3) 50%, transparent 70%)',
+          background: 'radial-gradient(circle at center, transparent 30%, rgba(147, 197, 253, 0.4) 50%, transparent 70%)',
           filter: 'blur(20px)',
         }}
       />
       
-      {/* OTIE Background Character - More visible with gentle presence */}
+      {/* OTIE Background Character - Much more visible with continuous levitation */}
       <div 
-        className="fixed bottom-20 right-10 w-72 h-72 opacity-[0.28] pointer-events-none float-animation"
+        className="fixed w-72 h-72 opacity-[0.55] pointer-events-none levitate-animation"
         style={{
           backgroundImage: 'url("/otie-character.png")',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',
-          filter: 'blur(0.2px) contrast(1.1)',
+          filter: 'contrast(1.2)',
           transformOrigin: 'center center',
         }}
       />
       
       {/* Soft outer glow behind OTIE */}
       <div 
-        className="fixed bottom-20 right-10 w-96 h-96 opacity-[0.08] pointer-events-none float-animation"
+        className="fixed w-96 h-96 opacity-[0.15] pointer-events-none levitate-animation"
         style={{
-          background: 'radial-gradient(circle, rgba(147, 197, 253, 0.5) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(147, 197, 253, 0.6) 0%, transparent 70%)',
           filter: 'blur(40px)',
         }}
       />

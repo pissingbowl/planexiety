@@ -6,32 +6,32 @@ export default function Home() {
     <main className="flex flex-col items-center min-h-screen bg-gradient-to-b from-gray-900 via-gray-950 to-blue-950 text-white py-8 px-4 relative overflow-hidden">
       {/* OTIE Bubble Effect - creates visibility outline */}
       <div 
-        className="fixed bottom-16 right-6 w-80 h-80 opacity-[0.15] pointer-events-none float-animation"
+        className="fixed bottom-16 right-6 w-80 h-80 opacity-[0.25] pointer-events-none float-animation"
         style={{
-          background: 'radial-gradient(circle at center, transparent 30%, rgba(147, 197, 253, 0.2) 50%, transparent 70%)',
+          background: 'radial-gradient(circle at center, transparent 30%, rgba(147, 197, 253, 0.3) 50%, transparent 70%)',
           filter: 'blur(20px)',
         }}
       />
       
-      {/* OTIE Background Character - Slightly more present with lifelike animation */}
+      {/* OTIE Background Character - More visible with gentle presence */}
       <div 
-        className="fixed bottom-20 right-10 w-72 h-72 opacity-[0.12] pointer-events-none float-animation"
+        className="fixed bottom-20 right-10 w-72 h-72 opacity-[0.28] pointer-events-none float-animation"
         style={{
           backgroundImage: 'url("/otie-character.png")',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',
-          filter: 'blur(0.3px)',
+          filter: 'blur(0.2px) contrast(1.1)',
           transformOrigin: 'center center',
         }}
       />
       
       {/* Soft outer glow behind OTIE */}
       <div 
-        className="fixed bottom-20 right-10 w-96 h-96 opacity-[0.04] pointer-events-none float-animation"
+        className="fixed bottom-20 right-10 w-96 h-96 opacity-[0.08] pointer-events-none float-animation"
         style={{
-          background: 'radial-gradient(circle, rgba(147, 197, 253, 0.4) 0%, transparent 70%)',
-          filter: 'blur(50px)',
+          background: 'radial-gradient(circle, rgba(147, 197, 253, 0.5) 0%, transparent 70%)',
+          filter: 'blur(40px)',
         }}
       />
       

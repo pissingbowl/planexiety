@@ -1,6 +1,6 @@
 // app/api/chat/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { otieOrchestrator } from '@/lib/otieOrchestrator';
+import { processOTIEMessage } from '@/lib/otieOrchestrator';
 
 export async function POST(request: NextRequest) {
   try {
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     console.log(`[API /chat] Processing message for user ${userId}, anxiety=${anxietyLevel}`);
 
     // Call the orchestrator
-    const result = await otieOrchestrator({
+    const result = await processOTIEMessage({
       userId,
       userMessage: message,
       currentAnxietyLevel: anxietyLevel,

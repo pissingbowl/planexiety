@@ -28,6 +28,8 @@ import {
   formatPIREP,
   generateEnhancedTurbulenceReport,
   analyzeWeatherGradients,
+  isUsingFallbackData,
+  resetFallbackDataFlag,
   type TurbulenceAssessment,
   type EnhancedTurbulenceReport
 } from "@/lib/api/turbulenceData";
@@ -130,8 +132,6 @@ function getNormalityScore(departure: string, arrival: string, phase: string): {
     'PDX-SEA': 4.5,
     
     // Plains turbulence routes
-    'DEN-ORD': 4.3,
-    'ORD-DEN': 4.2,
     'DEN-DFW': 4.0,
     'DFW-DEN': 4.0,
     'DEN-MSP': 4.1,
@@ -643,6 +643,7 @@ export default function FlightStatus() {
   // Turbulence state
   const [turbulenceData, setTurbulenceData] = useState<TurbulenceAssessment | null>(null);
   const [enhancedTurbulenceReport, setEnhancedTurbulenceReport] = useState<EnhancedTurbulenceReport | null>(null);
+  const [isUsingFallbackTurbulenceData, setIsUsingFallbackTurbulenceData] = useState(false);
   
   // Nearby flights state
   const [nearbyFlights, setNearbyFlights] = useState<FlightData[]>([]);
@@ -716,9 +717,16 @@ export default function FlightStatus() {
     dep: string, 
     arr: string
   ) => {
+    // Reset fallback flag before fetching
+    resetFallbackDataFlag();
+    
     // Fetch basic assessment
     const assessment = await assessFlightTurbulence(lat, lon, alt, dep, arr);
     setTurbulenceData(assessment);
+    
+    // Check if we're using fallback data
+    const usingFallback = isUsingFallbackData();
+    setIsUsingFallbackTurbulenceData(usingFallback);
     
     // Generate enhanced report if we have airport data
     const depAirport = AIRPORTS[dep];
@@ -743,6 +751,11 @@ export default function FlightStatus() {
         );
         console.log('Weather gradient analysis:', gradients);
       }
+    }
+    
+    // Log if we're using fallback data
+    if (usingFallback) {
+      console.log('Using demonstration turbulence data - actual aviation weather API unavailable');
     }
   };
   
@@ -1561,6 +1574,19 @@ export default function FlightStatus() {
               {/* TURBULENCE ANALYSIS Section */}
               {section.id === 'TURBULENCE' && (
                 <div className="space-y-3">
+                  {/* Fallback Data Indicator */}
+                  {isUsingFallbackTurbulenceData && (
+                    <div className="bg-amber-900/20 border border-amber-700/30 rounded-lg p-3 mb-3">
+                      <div className="flex items-start gap-2">
+                        <span className="text-amber-400 text-sm">ℹ️</span>
+                        <div className="text-xs text-amber-300">
+                          <p className="font-semibold mb-1">Using Demonstration Data</p>
+                          <p className="opacity-90">Live aviation weather data is currently unavailable. Showing representative turbulence conditions for this route.</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
                   {/* Main summary text */}
                   <p className="text-sm text-slate-300">
                     {turbulenceData ? turbulenceData.summary : "Light chop possible, but everything is on profile. The aircraft is designed for far more than you'll experience today."}

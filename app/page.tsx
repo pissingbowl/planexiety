@@ -18,11 +18,11 @@ export default function Home() {
       case 'chat':
         return (
           <div className="flex-1 flex flex-col">
-            <div className="text-center py-6">
-              <h1 className="text-6xl md:text-7xl font-bold mb-4 tracking-wider bg-gradient-to-r from-[var(--color-lavender)] via-[var(--color-violet-primary)] to-[var(--color-cyan)] bg-clip-text text-transparent">
+            <div className="text-center py-8">
+              <h1 className="otie-title">
                 OTIE
               </h1>
-              <p className="text-center max-w-xl mx-auto text-[var(--color-white-80)]">
+              <p className="otie-subtitle">
                 Your in-flight companion for turbulence, timing, and truth.
               </p>
             </div>

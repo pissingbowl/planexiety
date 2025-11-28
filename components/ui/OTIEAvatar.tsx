@@ -7,7 +7,7 @@ interface OTIEAvatarProps {
 }
 
 const sizeStyles = {
-  mini: { width: 40, height: 40 },
+  mini: { width: 36, height: 36 },
   small: { width: 60, height: 60 },
   medium: { width: 120, height: 120 },
   large: { width: 160, height: 160 },

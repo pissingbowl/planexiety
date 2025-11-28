@@ -65,7 +65,7 @@ const DEFAULT_ROUTES = [
   { from: 'BOS', to: 'DCA', duration: 90 },
 ];
 
-interface DemoFlightData {
+export interface DemoFlightData {
   icao24: string;
   callsign: string;
   origin_country: string;
@@ -73,12 +73,12 @@ interface DemoFlightData {
   last_contact: number;
   longitude: number;
   latitude: number;
-  baro_altitude: number; // meters
+  baro_altitude: number | null; // meters
   on_ground: boolean;
-  velocity: number; // m/s
+  velocity: number | null; // m/s
   true_track: number; // degrees
-  vertical_rate: number; // m/s
-  geo_altitude: number; // meters
+  vertical_rate: number | null; // m/s
+  geo_altitude: number | null; // meters
   squawk: string;
   altitude_ft: number;
   geo_altitude_ft: number;

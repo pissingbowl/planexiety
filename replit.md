@@ -8,6 +8,38 @@ The application tracks user anxiety levels, flight context, and provides persona
 
 ## Recent Changes
 
+**November 28, 2025 - Complete UI/UX Redesign**
+- Implemented comprehensive design system based on detailed UI/UX specification
+- New cosmic dark theme with violet/cyan accents and gradient backgrounds
+- Design tokens system in CSS variables:
+  - Colors: deep-space, violet-primary, lavender, cyan, graphite with transparency variants
+  - Gradients: cosmic backgrounds, OTIE glow, button gradients, slider tracks
+  - Shadows and glows: violet and cyan variants at multiple intensities
+  - Typography: Inter (display), Satoshi (body) fonts with full type scale
+  - Spacing: Consistent 4px-based scale (space-1 through space-24)
+  - Animation: Easing functions, duration scales, anxiety-adaptive timing
+- New UI Components (`components/ui/`):
+  - `OTIEAvatar`: Animated jellyfish avatar with anxiety-state animations
+  - `AnxietySlider`: Gradient slider with calm-to-panicked labels
+  - `TypingIndicator`: Animated three-dot indicator
+  - `BreathingTool`: Full-screen breathing exercise overlay
+  - `ChatMessage`: Styled message bubbles for OTIE and user
+  - `ChatInput`: Auto-expanding textarea with send button
+  - `TabBar`: Bottom navigation with Chat, Tools, Flight, Profile tabs
+  - `Header`: App header with OTIE branding and settings
+  - `ToolCard`: Card component for tools/features
+- Anxiety state system:
+  - Five states: grounded (0-2), alert (3-4), elevated (5-6), acute (7-8), crisis (9-10)
+  - `useAnxietyState` hook with velocity and acceleration tracking
+  - Data attributes for global state-aware styling
+  - Animation speed and transition duration scale with anxiety level
+- Accessibility features:
+  - Focus-visible states with cyan outline
+  - Reduced motion support
+  - Screen reader utilities (sr-only class)
+  - WCAG AA color contrast compliance
+- Responsive breakpoints: Mobile-first with tablet (768px) and desktop (1024px) variants
+
 **November 19, 2025 - Enhanced Turbulence Analysis System**
 - Implemented comprehensive route-specific turbulence reporting using ALL available data sources
 - Great circle route calculation with 50nm waypoint intervals for accurate flight path tracking

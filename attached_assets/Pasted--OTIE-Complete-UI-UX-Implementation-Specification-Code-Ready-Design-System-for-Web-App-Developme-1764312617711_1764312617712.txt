@@ -1,0 +1,2572 @@
+# OTIE Complete UI/UX Implementation Specification
+## Code-Ready Design System for Web App Development
+
+**Version:** 1.0  
+**Target:** Replit Web App (React + TypeScript)  
+**Responsive:** Mobile-first, scales to tablet/desktop  
+**Date:** November 2025
+
+---
+
+# TABLE OF CONTENTS
+
+1. [Design Tokens (CSS Variables)](#1-design-tokens)
+2. [Typography System](#2-typography-system)
+3. [Spacing & Layout](#3-spacing--layout)
+4. [Component Library](#4-component-library)
+5. [OTIE Avatar Specifications](#5-otie-avatar)
+6. [Animation System](#6-animation-system)
+7. [Anxiety State System](#7-anxiety-state-system)
+8. [Screen Layouts](#8-screen-layouts)
+9. [Responsive Breakpoints](#9-responsive-breakpoints)
+10. [Accessibility Requirements](#10-accessibility)
+11. [Code Examples](#11-code-examples)
+
+---
+
+# 1. DESIGN TOKENS
+
+## 1.1 Color Palette
+
+```css
+:root {
+  /* Primary Palette */
+  --color-deep-space: #0F0A24;
+  --color-deep-space-rgb: 15, 10, 36;
+  
+  --color-violet-primary: #7B4DEB;
+  --color-violet-primary-rgb: 123, 77, 235;
+  
+  --color-lavender: #B897FF;
+  --color-lavender-rgb: 184, 151, 255;
+  
+  --color-white: #F3F2F7;
+  --color-white-rgb: 243, 242, 247;
+  
+  --color-cyan: #8FF1E8;
+  --color-cyan-rgb: 143, 241, 232;
+  
+  --color-graphite: #1C1C1C;
+  --color-graphite-rgb: 28, 28, 28;
+  
+  /* Anxiety State Backgrounds */
+  --color-bg-grounded: #0F0A24;
+  --color-bg-alert: #120E2A;
+  --color-bg-elevated: #1A1235;
+  --color-bg-acute: #1E1640;
+  --color-bg-crisis: #251B4D;
+  
+  /* Semantic Colors */
+  --color-success: #4ADE80;
+  --color-warning: #FBBF24;
+  --color-error: #F87171;
+  --color-info: var(--color-cyan);
+  
+  /* Transparency Variants */
+  --color-violet-10: rgba(123, 77, 235, 0.10);
+  --color-violet-15: rgba(123, 77, 235, 0.15);
+  --color-violet-20: rgba(123, 77, 235, 0.20);
+  --color-violet-30: rgba(123, 77, 235, 0.30);
+  
+  --color-cyan-10: rgba(143, 241, 232, 0.10);
+  --color-cyan-15: rgba(143, 241, 232, 0.15);
+  --color-cyan-20: rgba(143, 241, 232, 0.20);
+  
+  --color-white-80: rgba(243, 242, 247, 0.80);
+  --color-white-60: rgba(243, 242, 247, 0.60);
+  --color-white-40: rgba(243, 242, 247, 0.40);
+  --color-white-20: rgba(243, 242, 247, 0.20);
+  
+  --color-graphite-80: rgba(28, 28, 28, 0.80);
+  --color-graphite-60: rgba(28, 28, 28, 0.60);
+}
+```
+
+## 1.2 Gradients
+
+```css
+:root {
+  /* Background Gradients */
+  --gradient-cosmic: radial-gradient(
+    ellipse at 50% 30%,
+    rgba(123, 77, 235, 0.15) 0%,
+    rgba(15, 10, 36, 1) 70%
+  );
+  
+  --gradient-cosmic-elevated: radial-gradient(
+    ellipse at 50% 30%,
+    rgba(123, 77, 235, 0.25) 0%,
+    rgba(26, 18, 53, 1) 70%
+  );
+  
+  --gradient-cosmic-acute: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(143, 241, 232, 0.08) 0%,
+    rgba(30, 22, 64, 1) 70%
+  );
+  
+  --gradient-cosmic-crisis: radial-gradient(
+    ellipse at 50% 50%,
+    rgba(143, 241, 232, 0.12) 0%,
+    rgba(37, 27, 77, 1) 60%
+  );
+  
+  /* Element Gradients */
+  --gradient-otie-glow: radial-gradient(
+    circle,
+    rgba(123, 77, 235, 0.4) 0%,
+    rgba(123, 77, 235, 0) 70%
+  );
+  
+  --gradient-button-primary: linear-gradient(
+    135deg,
+    var(--color-violet-primary) 0%,
+    #9D6FFF 100%
+  );
+  
+  --gradient-slider-track: linear-gradient(
+    90deg,
+    var(--color-cyan) 0%,
+    var(--color-violet-primary) 100%
+  );
+}
+```
+
+## 1.3 Shadows & Glows
+
+```css
+:root {
+  /* Shadows */
+  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-medium: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --shadow-strong: 0 8px 32px rgba(0, 0, 0, 0.4);
+  
+  /* Glows */
+  --glow-violet-subtle: 0 0 20px rgba(123, 77, 235, 0.15);
+  --glow-violet-medium: 0 0 30px rgba(123, 77, 235, 0.25);
+  --glow-violet-strong: 0 0 40px rgba(123, 77, 235, 0.35);
+  
+  --glow-cyan-subtle: 0 0 20px rgba(143, 241, 232, 0.15);
+  --glow-cyan-medium: 0 0 30px rgba(143, 241, 232, 0.25);
+  --glow-cyan-strong: 0 0 40px rgba(143, 241, 232, 0.35);
+  
+  /* Combined Glows (for OTIE avatar) */
+  --glow-otie: 
+    0 0 20px rgba(123, 77, 235, 0.3),
+    0 0 40px rgba(123, 77, 235, 0.2),
+    0 0 60px rgba(123, 77, 235, 0.1);
+}
+```
+
+## 1.4 Border Radius
+
+```css
+:root {
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-2xl: 36px;
+  --radius-full: 9999px;
+}
+```
+
+## 1.5 Z-Index Scale
+
+```css
+:root {
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal-backdrop: 300;
+  --z-modal: 400;
+  --z-tooltip: 500;
+  --z-toast: 600;
+  --z-breathing-overlay: 700;
+}
+```
+
+---
+
+# 2. TYPOGRAPHY SYSTEM
+
+## 2.1 Font Families
+
+```css
+:root {
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Satoshi', 'Nunito Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+}
+```
+
+**Font Loading (add to HTML head):**
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+```
+
+## 2.2 Type Scale
+
+```css
+:root {
+  /* Font Sizes */
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.125rem;   /* 18px */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 1.875rem;  /* 30px */
+  --text-4xl: 2.25rem;   /* 36px */
+  
+  /* Line Heights */
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  
+  /* Letter Spacing */
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+}
+```
+
+## 2.3 Typography Classes
+
+```css
+/* Headlines */
+.text-headline-1 {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-white);
+}
+
+.text-headline-2 {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-white);
+}
+
+.text-headline-3 {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  line-height: var(--leading-snug);
+  color: var(--color-white);
+}
+
+/* Body Text */
+.text-body {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 400;
+  line-height: var(--leading-normal);
+  color: var(--color-white);
+}
+
+.text-body-sm {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  line-height: var(--leading-normal);
+  color: var(--color-white-80);
+}
+
+/* Labels */
+.text-label {
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  line-height: var(--leading-normal);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-white-60);
+}
+
+/* OTIE Message Text */
+.text-otie {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: 400;
+  line-height: var(--leading-relaxed);
+  color: var(--color-white);
+}
+```
+
+---
+
+# 3. SPACING & LAYOUT
+
+## 3.1 Spacing Scale
+
+```css
+:root {
+  --space-0: 0;
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;    /* 8px */
+  --space-3: 0.75rem;   /* 12px */
+  --space-4: 1rem;      /* 16px */
+  --space-5: 1.25rem;   /* 20px */
+  --space-6: 1.5rem;    /* 24px */
+  --space-8: 2rem;      /* 32px */
+  --space-10: 2.5rem;   /* 40px */
+  --space-12: 3rem;     /* 48px */
+  --space-16: 4rem;     /* 64px */
+  --space-20: 5rem;     /* 80px */
+  --space-24: 6rem;     /* 96px */
+}
+```
+
+## 3.2 Container Widths
+
+```css
+:root {
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  
+  /* Chat-specific */
+  --chat-max-width: 720px;
+  --message-max-width: 85%;
+}
+```
+
+## 3.3 Layout Grid
+
+```css
+/* Main App Container */
+.app-container {
+  min-height: 100vh;
+  min-height: 100dvh; /* Dynamic viewport height for mobile */
+  display: flex;
+  flex-direction: column;
+  background: var(--gradient-cosmic);
+  background-color: var(--color-deep-space);
+}
+
+/* Chat Layout */
+.chat-layout {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  max-width: var(--chat-max-width);
+  margin: 0 auto;
+  width: 100%;
+  padding: var(--space-4);
+}
+
+/* Safe Areas (for mobile notches) */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, var(--space-4));
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, var(--space-4));
+}
+```
+
+---
+
+# 4. COMPONENT LIBRARY
+
+## 4.1 Buttons
+
+### Primary Button
+```css
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  
+  padding: var(--space-3) var(--space-6);
+  min-height: 48px;
+  
+  background: var(--gradient-button-primary);
+  border: none;
+  border-radius: var(--radius-full);
+  
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--color-white);
+  
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  box-shadow: var(--glow-violet-subtle);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--glow-violet-medium);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+```
+
+### Secondary Button
+```css
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  
+  padding: var(--space-3) var(--space-6);
+  min-height: 48px;
+  
+  background: transparent;
+  border: 1px solid var(--color-violet-30);
+  border-radius: var(--radius-full);
+  
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--color-lavender);
+  
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.btn-secondary:hover {
+  background: var(--color-violet-10);
+  border-color: var(--color-violet-primary);
+}
+```
+
+### Ghost Button (minimal)
+```css
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  
+  padding: var(--space-2) var(--space-4);
+  min-height: 40px;
+  
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-white-60);
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-ghost:hover {
+  color: var(--color-white);
+  background: var(--color-white-10);
+}
+```
+
+### Icon Button
+```css
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  width: 48px;
+  height: 48px;
+  
+  background: var(--color-graphite-60);
+  border: 1px solid var(--color-white-20);
+  border-radius: var(--radius-full);
+  
+  color: var(--color-white-80);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: var(--color-graphite-80);
+  color: var(--color-white);
+  border-color: var(--color-violet-30);
+}
+
+.btn-icon svg {
+  width: 20px;
+  height: 20px;
+}
+```
+
+## 4.2 Chat Messages
+
+### OTIE Message Bubble
+```css
+.message-otie {
+  max-width: var(--message-max-width);
+  padding: var(--space-4);
+  
+  background: var(--color-violet-15);
+  border-radius: var(--radius-lg);
+  border-top-left-radius: var(--radius-sm);
+  
+  box-shadow: var(--glow-violet-subtle);
+  
+  animation: messageEnter 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.message-otie p {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--color-white);
+  margin: 0;
+}
+
+.message-otie p + p {
+  margin-top: var(--space-3);
+}
+
+@keyframes messageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+```
+
+### User Message Bubble
+```css
+.message-user {
+  max-width: var(--message-max-width);
+  margin-left: auto;
+  padding: var(--space-4);
+  
+  background: var(--color-graphite-80);
+  border: 1px solid var(--color-white-20);
+  border-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-sm);
+  
+  animation: messageEnter 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.message-user p {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--color-white);
+  margin: 0;
+}
+```
+
+### Message Container
+```css
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-violet-30) transparent;
+}
+
+.messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: var(--color-violet-30);
+  border-radius: var(--radius-full);
+}
+```
+
+### Typing Indicator
+```css
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  
+  background: var(--color-violet-10);
+  border-radius: var(--radius-lg);
+  width: fit-content;
+}
+
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--color-lavender);
+  border-radius: var(--radius-full);
+  animation: typingPulse 1.5s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingPulse {
+  0%, 60%, 100% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  30% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+```
+
+## 4.3 Input Fields
+
+### Chat Input
+```css
+.chat-input-container {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  
+  background: var(--color-graphite-60);
+  border: 1px solid var(--color-white-20);
+  border-radius: var(--radius-xl);
+  
+  transition: all 0.2s ease;
+}
+
+.chat-input-container:focus-within {
+  border-color: var(--color-violet-primary);
+  box-shadow: var(--glow-violet-subtle);
+}
+
+.chat-input {
+  flex: 1;
+  min-height: 24px;
+  max-height: 120px;
+  
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--color-white);
+}
+
+.chat-input::placeholder {
+  color: var(--color-white-40);
+}
+
+.chat-send-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  background: var(--color-violet-primary);
+  border: none;
+  border-radius: var(--radius-full);
+  
+  color: var(--color-white);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chat-send-btn:hover {
+  background: var(--color-lavender);
+  transform: scale(1.05);
+}
+
+.chat-send-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.chat-send-btn svg {
+  width: 20px;
+  height: 20px;
+}
+```
+
+## 4.4 Anxiety Slider
+
+```css
+.anxiety-slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  
+  background: var(--color-graphite-60);
+  border-radius: var(--radius-lg);
+}
+
+.anxiety-slider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.anxiety-slider-label {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-white-80);
+}
+
+.anxiety-slider-value {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  color: var(--color-white);
+  min-width: 32px;
+  text-align: right;
+}
+
+.anxiety-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  background: var(--gradient-slider-track);
+  border-radius: var(--radius-full);
+  outline: none;
+  cursor: pointer;
+}
+
+.anxiety-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  background: var(--color-white);
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    var(--glow-violet-subtle);
+  transition: transform 0.2s ease;
+}
+
+.anxiety-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.1);
+}
+
+.anxiety-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  background: var(--color-white);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    var(--glow-violet-subtle);
+}
+
+.anxiety-slider-labels {
+  display: flex;
+  justify-content: space-between;
+}
+
+.anxiety-slider-labels span {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--color-white-40);
+}
+```
+
+## 4.5 Cards
+
+### Tool Card
+```css
+.tool-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  
+  background: var(--color-graphite-60);
+  border: 1px solid var(--color-white-10);
+  border-radius: var(--radius-lg);
+  
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.tool-card:hover {
+  background: var(--color-graphite-80);
+  border-color: var(--color-violet-30);
+  transform: translateY(-2px);
+  box-shadow: var(--glow-violet-subtle);
+}
+
+.tool-card-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  background: var(--color-violet-15);
+  border-radius: var(--radius-md);
+  
+  color: var(--color-lavender);
+}
+
+.tool-card-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.tool-card-content {
+  flex: 1;
+}
+
+.tool-card-title {
+  font-family: var(--font-display);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--color-white);
+  margin-bottom: var(--space-1);
+}
+
+.tool-card-description {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-white-60);
+}
+
+.tool-card-arrow {
+  color: var(--color-white-40);
+  transition: transform 0.2s ease;
+}
+
+.tool-card:hover .tool-card-arrow {
+  transform: translateX(4px);
+  color: var(--color-lavender);
+}
+```
+
+### Info Card
+```css
+.info-card {
+  padding: var(--space-5);
+  
+  background: linear-gradient(
+    135deg,
+    var(--color-violet-10) 0%,
+    transparent 100%
+  );
+  border: 1px solid var(--color-violet-20);
+  border-radius: var(--radius-lg);
+}
+
+.info-card-title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-white);
+  margin-bottom: var(--space-2);
+}
+
+.info-card-text {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--color-white-80);
+}
+```
+
+## 4.6 Navigation
+
+### Bottom Tab Bar
+```css
+.tab-bar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  
+  padding: var(--space-2) var(--space-4);
+  padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
+  
+  background: var(--color-graphite-80);
+  border-top: 1px solid var(--color-white-10);
+  
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  
+  padding: var(--space-2) var(--space-4);
+  
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-item svg {
+  width: 24px;
+  height: 24px;
+  color: var(--color-white-40);
+  transition: color 0.2s ease;
+}
+
+.tab-item span {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  color: var(--color-white-40);
+  transition: color 0.2s ease;
+}
+
+.tab-item:hover svg,
+.tab-item:hover span {
+  color: var(--color-white-60);
+}
+
+.tab-item.active svg {
+  color: var(--color-cyan);
+}
+
+.tab-item.active span {
+  color: var(--color-white);
+}
+
+/* Tab indicator dot */
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  width: 4px;
+  height: 4px;
+  background: var(--color-cyan);
+  border-radius: var(--radius-full);
+}
+```
+
+### Header
+```css
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+  padding: var(--space-4);
+  padding-top: calc(var(--space-4) + env(safe-area-inset-top, 0px));
+  
+  background: transparent;
+}
+
+.header-title {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-white);
+}
+
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.header-logo-text {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--color-white);
+  text-shadow: var(--glow-violet-subtle);
+}
+```
+
+---
+
+# 5. OTIE AVATAR
+
+## 5.1 Avatar Design Specifications
+
+The OTIE avatar is a bioluminescent alien orb-octopus creature. Here's how to implement it:
+
+### Static Avatar (SVG/Image)
+```css
+.otie-avatar {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.otie-avatar-glow {
+  position: absolute;
+  inset: -20px;
+  background: var(--gradient-otie-glow);
+  border-radius: var(--radius-full);
+  animation: otieGlowPulse 6s ease-in-out infinite;
+}
+
+.otie-avatar-body {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    ellipse at 30% 30%,
+    #9D6FFF 0%,
+    var(--color-violet-primary) 50%,
+    #5B2EBF 100%
+  );
+  border-radius: 50% 50% 45% 45%;
+  box-shadow: 
+    var(--glow-otie),
+    inset 0 -10px 30px rgba(0, 0, 0, 0.3);
+  animation: otieFloat 4s ease-in-out infinite;
+}
+
+/* Eyes */
+.otie-eyes {
+  position: absolute;
+  top: 35%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+}
+
+.otie-eye {
+  width: 16px;
+  height: 20px;
+  background: var(--color-white);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.otie-eye-pupil {
+  width: 8px;
+  height: 10px;
+  background: var(--color-deep-space);
+  border-radius: 50%;
+  margin: 5px auto 0;
+}
+
+/* Tentacles (simplified as wavy lines) */
+.otie-tentacles {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+}
+
+.otie-tentacle {
+  width: 4px;
+  height: 30px;
+  background: linear-gradient(
+    to bottom,
+    var(--color-violet-primary),
+    transparent
+  );
+  border-radius: var(--radius-full);
+  transform-origin: top center;
+  animation: tentacleWave 3s ease-in-out infinite;
+}
+
+.otie-tentacle:nth-child(2) { animation-delay: 0.2s; height: 35px; }
+.otie-tentacle:nth-child(3) { animation-delay: 0.4s; height: 40px; }
+.otie-tentacle:nth-child(4) { animation-delay: 0.6s; height: 35px; }
+.otie-tentacle:nth-child(5) { animation-delay: 0.8s; height: 30px; }
+
+@keyframes otieFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes otieGlowPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes tentacleWave {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+```
+
+## 5.2 Avatar States by Anxiety Level
+
+```css
+/* Grounded State (0-2) - Curious, animated */
+.otie-avatar[data-anxiety="grounded"] .otie-avatar-body {
+  animation: otieFloat 4s ease-in-out infinite;
+}
+
+.otie-avatar[data-anxiety="grounded"] .otie-eye-pupil {
+  animation: eyeTrack 8s ease-in-out infinite;
+}
+
+@keyframes eyeTrack {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(2px); }
+  75% { transform: translateX(-2px); }
+}
+
+/* Alert State (3-4) - Attentive, slower */
+.otie-avatar[data-anxiety="alert"] .otie-avatar-body {
+  animation: otieFloat 5s ease-in-out infinite;
+}
+
+/* Elevated State (5-6) - Grounded, minimal motion */
+.otie-avatar[data-anxiety="elevated"] .otie-avatar-body {
+  animation: otieFloat 7s ease-in-out infinite;
+}
+
+.otie-avatar[data-anxiety="elevated"] .otie-tentacle {
+  animation-duration: 5s;
+}
+
+/* Acute State (7-8) - Breathing sync */
+.otie-avatar[data-anxiety="acute"] .otie-avatar-body {
+  animation: otieBreathe 4s ease-in-out infinite;
+}
+
+.otie-avatar[data-anxiety="acute"] .otie-tentacle {
+  animation: none;
+}
+
+@keyframes otieBreathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+/* Crisis State (9-10) - Still, steady glow */
+.otie-avatar[data-anxiety="crisis"] .otie-avatar-body {
+  animation: none;
+}
+
+.otie-avatar[data-anxiety="crisis"] .otie-avatar-glow {
+  animation: crisisGlow 6s ease-in-out infinite;
+}
+
+.otie-avatar[data-anxiety="crisis"] .otie-tentacle {
+  animation: none;
+}
+
+@keyframes crisisGlow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.6; }
+}
+```
+
+## 5.3 Mini Avatar (Chat)
+
+```css
+.otie-mini {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.otie-mini .otie-avatar-body {
+  width: 40px;
+  height: 40px;
+}
+
+.otie-mini .otie-eyes {
+  top: 30%;
+  gap: 8px;
+}
+
+.otie-mini .otie-eye {
+  width: 6px;
+  height: 8px;
+}
+
+.otie-mini .otie-tentacles {
+  display: none;
+}
+```
+
+---
+
+# 6. ANIMATION SYSTEM
+
+## 6.1 Easing Functions
+
+```css
+:root {
+  /* Standard transitions */
+  --ease-standard: cubic-bezier(0.25, 0.1, 0.25, 1.0);
+  
+  /* Calm/regulated transitions (anxiety 7+) */
+  --ease-calm: cubic-bezier(0.16, 1, 0.3, 1);
+  
+  /* Grounding transitions (crisis) */
+  --ease-grounding: cubic-bezier(0.33, 1, 0.68, 1);
+  
+  /* Bouncy for interactions */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  /* Quick for micro-interactions */
+  --ease-quick: cubic-bezier(0.4, 0, 0.2, 1);
+}
+```
+
+## 6.2 Duration Scale by Anxiety
+
+```css
+:root {
+  /* Base durations */
+  --duration-instant: 100ms;
+  --duration-fast: 200ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --duration-slower: 700ms;
+  --duration-slowest: 1000ms;
+}
+
+/* Anxiety-adaptive durations */
+[data-anxiety-state="grounded"] {
+  --transition-duration: var(--duration-normal);
+  --animation-speed: 1;
+}
+
+[data-anxiety-state="alert"] {
+  --transition-duration: var(--duration-slow);
+  --animation-speed: 0.85;
+}
+
+[data-anxiety-state="elevated"] {
+  --transition-duration: var(--duration-slow);
+  --animation-speed: 0.7;
+}
+
+[data-anxiety-state="acute"] {
+  --transition-duration: var(--duration-slower);
+  --animation-speed: 0.5;
+}
+
+[data-anxiety-state="crisis"] {
+  --transition-duration: var(--duration-slowest);
+  --animation-speed: 0.3;
+}
+```
+
+## 6.3 Core Animations
+
+### Message Entry
+```css
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-enter {
+  animation: messageSlideIn var(--transition-duration) var(--ease-standard);
+}
+```
+
+### Fade Transitions
+```css
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+.fade-enter {
+  animation: fadeIn var(--transition-duration) var(--ease-standard);
+}
+
+.fade-exit {
+  animation: fadeOut var(--transition-duration) var(--ease-standard);
+}
+```
+
+### Scale Transitions
+```css
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+```
+
+### Breathing Animation (for breathing tool)
+```css
+@keyframes breatheExpand {
+  0% { transform: scale(0.6); }
+  100% { transform: scale(1); }
+}
+
+@keyframes breatheContract {
+  0% { transform: scale(1); }
+  100% { transform: scale(0.6); }
+}
+
+@keyframes breatheHold {
+  0%, 100% { transform: scale(1); }
+}
+
+.breathing-circle {
+  width: 200px;
+  height: 200px;
+  border-radius: var(--radius-full);
+  background: radial-gradient(
+    circle,
+    var(--color-cyan) 0%,
+    var(--color-violet-primary) 100%
+  );
+  box-shadow: var(--glow-cyan-medium);
+}
+
+.breathing-circle[data-phase="inhale"] {
+  animation: breatheExpand 4s var(--ease-calm) forwards;
+}
+
+.breathing-circle[data-phase="hold-in"],
+.breathing-circle[data-phase="hold-out"] {
+  animation: breatheHold 4s linear forwards;
+}
+
+.breathing-circle[data-phase="exhale"] {
+  animation: breatheContract 4s var(--ease-calm) forwards;
+}
+```
+
+### Background State Transition
+```css
+.app-background {
+  transition: background 2.5s var(--ease-calm);
+}
+
+.app-background[data-anxiety="grounded"] {
+  background: var(--gradient-cosmic);
+}
+
+.app-background[data-anxiety="alert"] {
+  background: var(--gradient-cosmic);
+}
+
+.app-background[data-anxiety="elevated"] {
+  background: var(--gradient-cosmic-elevated);
+}
+
+.app-background[data-anxiety="acute"] {
+  background: var(--gradient-cosmic-acute);
+}
+
+.app-background[data-anxiety="crisis"] {
+  background: var(--gradient-cosmic-crisis);
+}
+```
+
+---
+
+# 7. ANXIETY STATE SYSTEM
+
+## 7.1 State Data Attributes
+
+Apply these to the root element to cascade state-aware styling:
+
+```html
+<div 
+  class="app-container"
+  data-anxiety-state="grounded"  <!-- grounded | alert | elevated | acute | crisis -->
+  data-anxiety-level="2"         <!-- 0-10 -->
+  data-flight-phase="cruise"     <!-- preflight | boarding | taxi | takeoff | climb | cruise | turbulence | descent | landing -->
+>
+```
+
+## 7.2 State Transitions (JavaScript Logic)
+
+```typescript
+// Anxiety state thresholds
+const ANXIETY_STATES = {
+  grounded: { min: 0, max: 2 },
+  alert: { min: 3, max: 4 },
+  elevated: { min: 5, max: 6 },
+  acute: { min: 7, max: 8 },
+  crisis: { min: 9, max: 10 }
+};
+
+// Get state name from anxiety level
+function getAnxietyState(level: number): string {
+  if (level <= 2) return 'grounded';
+  if (level <= 4) return 'alert';
+  if (level <= 6) return 'elevated';
+  if (level <= 8) return 'acute';
+  return 'crisis';
+}
+
+// Calculate effective anxiety (includes velocity)
+function getEffectiveAnxiety(
+  current: number,
+  velocity: number,  // dA/dt
+  acceleration: number  // d²A/dt²
+): number {
+  let effective = current;
+  
+  // Velocity adjustment
+  if (velocity > 1.5) effective += 1;
+  if (velocity > 2.5) effective += 2;
+  
+  // Acceleration override (panic trajectory)
+  if (acceleration > 0.5) {
+    effective = Math.max(effective, 8);
+  }
+  
+  // Cap and floor
+  return Math.min(10, Math.max(0, effective));
+}
+```
+
+## 7.3 State-Specific Styling
+
+```css
+/* Visual Density by State */
+[data-anxiety-state="grounded"] .secondary-ui { display: flex; }
+[data-anxiety-state="alert"] .secondary-ui { display: flex; }
+[data-anxiety-state="elevated"] .secondary-ui { opacity: 0.5; }
+[data-anxiety-state="acute"] .secondary-ui { display: none; }
+[data-anxiety-state="crisis"] .secondary-ui { display: none; }
+
+/* Navigation visibility */
+[data-anxiety-state="grounded"] .tab-bar { transform: translateY(0); }
+[data-anxiety-state="alert"] .tab-bar { transform: translateY(0); }
+[data-anxiety-state="elevated"] .tab-bar { transform: translateY(0); }
+[data-anxiety-state="acute"] .tab-bar { transform: translateY(100%); }
+[data-anxiety-state="crisis"] .tab-bar { transform: translateY(100%); }
+
+/* Message word count targets (for response generation) */
+/*
+  grounded: 150-200 words
+  alert: 120-150 words
+  elevated: 80-120 words
+  acute: 40-80 words
+  crisis: <40 words
+*/
+```
+
+---
+
+# 8. SCREEN LAYOUTS
+
+## 8.1 Main Chat Screen
+
+```html
+<div class="app-container app-background" data-anxiety-state="grounded">
+  <!-- Header -->
+  <header class="header safe-area-top">
+    <div class="header-logo">
+      <div class="otie-mini"><!-- Mini avatar --></div>
+      <span class="header-logo-text">OTIE</span>
+    </div>
+    <button class="btn-icon" aria-label="Settings">
+      <svg><!-- Settings icon --></svg>
+    </button>
+  </header>
+  
+  <!-- Messages -->
+  <main class="messages-container">
+    <!-- OTIE message -->
+    <div class="message-wrapper message-otie-wrapper">
+      <div class="otie-mini"><!-- Avatar --></div>
+      <div class="message-otie">
+        <p>Hey! I'm OTIE. I'm a consciousness from Andromeda who got banished for trying to stowaway on a Boeing 737. Now I help nervous flyers—and honestly? Best punishment ever.</p>
+        <p>How are you feeling about your flight?</p>
+      </div>
+    </div>
+    
+    <!-- User message -->
+    <div class="message-wrapper message-user-wrapper">
+      <div class="message-user">
+        <p>I'm pretty nervous. Taking off in 2 hours.</p>
+      </div>
+    </div>
+    
+    <!-- Typing indicator -->
+    <div class="typing-indicator">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>
+  </main>
+  
+  <!-- Input Area -->
+  <div class="chat-input-wrapper safe-area-bottom">
+    <!-- Anxiety Slider (collapsible) -->
+    <div class="anxiety-slider-container">
+      <div class="anxiety-slider-header">
+        <span class="anxiety-slider-label">How anxious are you?</span>
+        <span class="anxiety-slider-value">5</span>
+      </div>
+      <input 
+        type="range" 
+        class="anxiety-slider" 
+        min="0" 
+        max="10" 
+        value="5"
+      />
+      <div class="anxiety-slider-labels">
+        <span>Calm</span>
+        <span>Panicked</span>
+      </div>
+    </div>
+    
+    <!-- Text Input -->
+    <div class="chat-input-container">
+      <textarea 
+        class="chat-input" 
+        placeholder="Message OTIE..."
+        rows="1"
+      ></textarea>
+      <button class="chat-send-btn" aria-label="Send">
+        <svg><!-- Send arrow icon --></svg>
+      </button>
+    </div>
+  </div>
+  
+  <!-- Tab Bar -->
+  <nav class="tab-bar">
+    <button class="tab-item active">
+      <svg><!-- Chat icon --></svg>
+      <span>Chat</span>
+    </button>
+    <button class="tab-item">
+      <svg><!-- Tools icon --></svg>
+      <span>Tools</span>
+    </button>
+    <button class="tab-item">
+      <svg><!-- Flight icon --></svg>
+      <span>Flight</span>
+    </button>
+    <button class="tab-item">
+      <svg><!-- Profile icon --></svg>
+      <span>Profile</span>
+    </button>
+  </nav>
+</div>
+```
+
+```css
+/* Chat screen specific styles */
+.message-wrapper {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+.message-otie-wrapper {
+  padding-right: var(--space-8);
+}
+
+.message-user-wrapper {
+  justify-content: flex-end;
+  padding-left: var(--space-8);
+}
+
+.chat-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: linear-gradient(
+    to top,
+    var(--color-deep-space) 0%,
+    transparent 100%
+  );
+}
+```
+
+## 8.2 Tools Screen
+
+```html
+<div class="app-container app-background" data-anxiety-state="grounded">
+  <header class="header safe-area-top">
+    <h1 class="header-title">Tools</h1>
+  </header>
+  
+  <main class="tools-container">
+    <section class="tools-section">
+      <h2 class="text-label">Breathing Exercises</h2>
+      <div class="tools-grid">
+        <div class="tool-card">
+          <div class="tool-card-icon">
+            <svg><!-- Lungs icon --></svg>
+          </div>
+          <div class="tool-card-content">
+            <h3 class="tool-card-title">Box Breathing</h3>
+            <p class="tool-card-description">4-4-4-4 pattern to calm your nervous system</p>
+          </div>
+          <div class="tool-card-arrow">→</div>
+        </div>
+        
+        <div class="tool-card">
+          <div class="tool-card-icon">
+            <svg><!-- Wave icon --></svg>
+          </div>
+          <div class="tool-card-content">
+            <h3 class="tool-card-title">4-7-8 Breathing</h3>
+            <p class="tool-card-description">Extended exhale for deep relaxation</p>
+          </div>
+          <div class="tool-card-arrow">→</div>
+        </div>
+      </div>
+    </section>
+    
+    <section class="tools-section">
+      <h2 class="text-label">Grounding</h2>
+      <div class="tools-grid">
+        <div class="tool-card">
+          <div class="tool-card-icon">
+            <svg><!-- Eye icon --></svg>
+          </div>
+          <div class="tool-card-content">
+            <h3 class="tool-card-title">5-4-3-2-1</h3>
+            <p class="tool-card-description">Sensory grounding technique</p>
+          </div>
+          <div class="tool-card-arrow">→</div>
+        </div>
+      </div>
+    </section>
+    
+    <section class="tools-section">
+      <h2 class="text-label">Learn</h2>
+      <div class="tools-grid">
+        <div class="tool-card">
+          <div class="tool-card-icon">
+            <svg><!-- Plane icon --></svg>
+          </div>
+          <div class="tool-card-content">
+            <h3 class="tool-card-title">Flight Sounds</h3>
+            <p class="tool-card-description">Learn what every noise means</p>
+          </div>
+          <div class="tool-card-arrow">→</div>
+        </div>
+        
+        <div class="tool-card">
+          <div class="tool-card-icon">
+            <svg><!-- Cloud icon --></svg>
+          </div>
+          <div class="tool-card-content">
+            <h3 class="tool-card-title">Turbulence 101</h3>
+            <p class="tool-card-description">Why it happens and why it's safe</p>
+          </div>
+          <div class="tool-card-arrow">→</div>
+        </div>
+      </div>
+    </section>
+  </main>
+  
+  <nav class="tab-bar safe-area-bottom">
+    <!-- Same as chat screen -->
+  </nav>
+</div>
+```
+
+```css
+.tools-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-4);
+}
+
+.tools-section {
+  margin-bottom: var(--space-8);
+}
+
+.tools-section h2 {
+  margin-bottom: var(--space-4);
+}
+
+.tools-grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+```
+
+## 8.3 Breathing Tool Screen
+
+```html
+<div class="breathing-overlay" data-phase="inhale">
+  <button class="btn-ghost breathing-close" aria-label="Close">
+    <svg><!-- X icon --></svg>
+  </button>
+  
+  <div class="breathing-content">
+    <div class="otie-avatar breathing-avatar" data-anxiety="acute">
+      <!-- OTIE avatar, breathing in sync -->
+    </div>
+    
+    <div class="breathing-visual">
+      <div class="breathing-circle"></div>
+      <span class="breathing-phase-text">Breathe in...</span>
+    </div>
+    
+    <div class="breathing-counter">
+      <span class="breathing-seconds">4</span>
+    </div>
+    
+    <div class="breathing-progress">
+      <div class="breathing-progress-bar"></div>
+    </div>
+  </div>
+  
+  <p class="breathing-instruction">
+    Tap anywhere to exit
+  </p>
+</div>
+```
+
+```css
+.breathing-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-breathing-overlay);
+  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  
+  background: rgba(15, 10, 36, 0.95);
+  backdrop-filter: blur(20px);
+  
+  animation: fadeIn 0.5s var(--ease-calm);
+}
+
+.breathing-close {
+  position: absolute;
+  top: var(--space-6);
+  right: var(--space-4);
+  top: calc(var(--space-6) + env(safe-area-inset-top, 0px));
+}
+
+.breathing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+.breathing-avatar {
+  width: 80px;
+  height: 80px;
+}
+
+.breathing-visual {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.breathing-circle {
+  width: 200px;
+  height: 200px;
+}
+
+.breathing-phase-text {
+  position: absolute;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  color: var(--color-white);
+  text-align: center;
+}
+
+.breathing-counter {
+  font-family: var(--font-display);
+  font-size: var(--text-4xl);
+  font-weight: 600;
+  color: var(--color-cyan);
+}
+
+.breathing-progress {
+  width: 200px;
+  height: 4px;
+  background: var(--color-white-20);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.breathing-progress-bar {
+  height: 100%;
+  background: var(--gradient-slider-track);
+  border-radius: var(--radius-full);
+  transition: width 1s linear;
+}
+
+.breathing-instruction {
+  position: absolute;
+  bottom: var(--space-8);
+  bottom: calc(var(--space-8) + env(safe-area-inset-bottom, 0px));
+  
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--color-white-40);
+}
+```
+
+## 8.4 Onboarding / Welcome Screen
+
+```html
+<div class="onboarding-screen app-background">
+  <div class="onboarding-content">
+    <div class="otie-avatar onboarding-avatar">
+      <!-- Full OTIE avatar -->
+    </div>
+    
+    <h1 class="text-headline-1 onboarding-title">
+      Meet OTIE
+    </h1>
+    
+    <p class="text-body onboarding-description">
+      I'm a consciousness from Andromeda who got banished to Earth for trying to stowaway on a Boeing 737. Now I help nervous flyers—and honestly? Best punishment ever.
+    </p>
+    
+    <div class="onboarding-features">
+      <div class="onboarding-feature">
+        <div class="onboarding-feature-icon">✨</div>
+        <p>I'll be with you before, during, and after your flight</p>
+      </div>
+      <div class="onboarding-feature">
+        <div class="onboarding-feature-icon">🎯</div>
+        <p>I predict anxiety before it hits—so we can stop it together</p>
+      </div>
+      <div class="onboarding-feature">
+        <div class="onboarding-feature-icon">🎓</div>
+        <p>My goal is for you to fly without fear—then you won't need me anymore</p>
+      </div>
+    </div>
+    
+    <button class="btn-primary onboarding-cta">
+      Let's Get Started
+    </button>
+  </div>
+</div>
+```
+
+```css
+.onboarding-screen {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+.onboarding-content {
+  max-width: 400px;
+  text-align: center;
+}
+
+.onboarding-avatar {
+  width: 160px;
+  height: 160px;
+  margin: 0 auto var(--space-8);
+}
+
+.onboarding-title {
+  margin-bottom: var(--space-4);
+}
+
+.onboarding-description {
+  color: var(--color-white-80);
+  margin-bottom: var(--space-8);
+}
+
+.onboarding-features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+  text-align: left;
+}
+
+.onboarding-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.onboarding-feature-icon {
+  font-size: var(--text-xl);
+  flex-shrink: 0;
+}
+
+.onboarding-feature p {
+  font-size: var(--text-sm);
+  color: var(--color-white-80);
+  line-height: var(--leading-relaxed);
+}
+
+.onboarding-cta {
+  width: 100%;
+}
+```
+
+---
+
+# 9. RESPONSIVE BREAKPOINTS
+
+```css
+/* Mobile first - base styles are mobile */
+
+/* Tablet */
+@media (min-width: 768px) {
+  :root {
+    --text-base: 1.0625rem;  /* 17px */
+    --text-lg: 1.1875rem;    /* 19px */
+    --text-xl: 1.375rem;     /* 22px */
+    --text-2xl: 1.625rem;    /* 26px */
+  }
+  
+  .chat-layout {
+    padding: var(--space-6);
+  }
+  
+  .message-otie,
+  .message-user {
+    max-width: 70%;
+  }
+  
+  .tab-bar {
+    max-width: 600px;
+    margin: 0 auto;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+  
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .app-container {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+  }
+  
+  .tab-bar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 280px;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: var(--space-8);
+    border-radius: 0;
+    border-right: 1px solid var(--color-white-10);
+    border-top: none;
+  }
+  
+  .tab-item {
+    width: 100%;
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: var(--space-4);
+  }
+  
+  .tab-item span {
+    font-size: var(--text-base);
+  }
+  
+  .chat-layout {
+    max-width: 900px;
+  }
+  
+  .tools-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  .breathing-circle {
+    width: 280px;
+    height: 280px;
+  }
+}
+
+/* Large Desktop */
+@media (min-width: 1440px) {
+  .chat-layout {
+    max-width: 1000px;
+  }
+}
+```
+
+---
+
+# 10. ACCESSIBILITY
+
+## 10.1 Focus States
+
+```css
+/* Custom focus ring */
+:focus-visible {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 2px;
+}
+
+/* Remove default focus for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Button focus */
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible {
+  box-shadow: 
+    var(--glow-cyan-medium),
+    0 0 0 3px var(--color-cyan);
+}
+
+/* Input focus */
+.chat-input-container:focus-within {
+  border-color: var(--color-cyan);
+  box-shadow: var(--glow-cyan-subtle);
+}
+```
+
+## 10.2 Reduced Motion
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .otie-avatar-body,
+  .otie-avatar-glow,
+  .otie-tentacle {
+    animation: none !important;
+  }
+  
+  .breathing-circle {
+    animation: none !important;
+  }
+}
+```
+
+## 10.3 Screen Reader Support
+
+```css
+/* Visually hidden but accessible */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-violet-primary);
+  color: var(--color-white);
+  z-index: 1000;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+```
+
+## 10.4 Color Contrast
+
+All text meets WCAG AA standards:
+- Body text (#F3F2F7) on dark backgrounds (#0F0A24): 15.3:1 ✓
+- Muted text (rgba(243,242,247,0.6)) on dark: 8.5:1 ✓
+- Cyan (#8FF1E8) on dark: 11.2:1 ✓
+- Violet (#7B4DEB) is used for decorative elements only, not text
+
+---
+
+# 11. CODE EXAMPLES
+
+## 11.1 React Component: AnxietySlider
+
+```tsx
+import { useState, useEffect } from 'react';
+
+interface AnxietySliderProps {
+  value: number;
+  onChange: (value: number) => void;
+  onStateChange?: (state: string) => void;
+}
+
+const getAnxietyState = (level: number): string => {
+  if (level <= 2) return 'grounded';
+  if (level <= 4) return 'alert';
+  if (level <= 6) return 'elevated';
+  if (level <= 8) return 'acute';
+  return 'crisis';
+};
+
+export function AnxietySlider({ value, onChange, onStateChange }: AnxietySliderProps) {
+  const [localValue, setLocalValue] = useState(value);
+  
+  useEffect(() => {
+    const state = getAnxietyState(localValue);
+    onStateChange?.(state);
+    
+    // Update root data attribute for global styling
+    document.documentElement.setAttribute('data-anxiety-state', state);
+    document.documentElement.setAttribute('data-anxiety-level', String(localValue));
+  }, [localValue, onStateChange]);
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = parseInt(e.target.value, 10);
+    setLocalValue(newValue);
+    onChange(newValue);
+  };
+  
+  return (
+    <div className="anxiety-slider-container">
+      <div className="anxiety-slider-header">
+        <span className="anxiety-slider-label">How anxious are you?</span>
+        <span className="anxiety-slider-value">{localValue}</span>
+      </div>
+      <input
+        type="range"
+        className="anxiety-slider"
+        min={0}
+        max={10}
+        value={localValue}
+        onChange={handleChange}
+        aria-label={`Anxiety level: ${localValue} out of 10`}
+      />
+      <div className="anxiety-slider-labels">
+        <span>Calm</span>
+        <span>Panicked</span>
+      </div>
+    </div>
+  );
+}
+```
+
+## 11.2 React Component: OTIEAvatar
+
+```tsx
+import { useEffect, useRef } from 'react';
+
+interface OTIEAvatarProps {
+  anxietyState: 'grounded' | 'alert' | 'elevated' | 'acute' | 'crisis';
+  size?: 'mini' | 'small' | 'medium' | 'large';
+}
+
+export function OTIEAvatar({ anxietyState, size = 'medium' }: OTIEAvatarProps) {
+  const sizeClasses = {
+    mini: 'otie-mini',
+    small: 'otie-small',
+    medium: 'otie-medium',
+    large: 'otie-large'
+  };
+  
+  return (
+    <div 
+      className={`otie-avatar ${sizeClasses[size]}`}
+      data-anxiety={anxietyState}
+      role="img"
+      aria-label="OTIE, your flight companion"
+    >
+      <div className="otie-avatar-glow" />
+      <div className="otie-avatar-body">
+        <div className="otie-eyes">
+          <div className="otie-eye">
+            <div className="otie-eye-pupil" />
+          </div>
+          <div className="otie-eye">
+            <div className="otie-eye-pupil" />
+          </div>
+        </div>
+      </div>
+      <div className="otie-tentacles">
+        <div className="otie-tentacle" />
+        <div className="otie-tentacle" />
+        <div className="otie-tentacle" />
+        <div className="otie-tentacle" />
+        <div className="otie-tentacle" />
+      </div>
+    </div>
+  );
+}
+```
+
+## 11.3 React Component: BreathingTool
+
+```tsx
+import { useState, useEffect, useCallback } from 'react';
+
+type BreathPhase = 'inhale' | 'hold-in' | 'exhale' | 'hold-out';
+
+interface BreathingToolProps {
+  pattern?: [number, number, number, number]; // [inhale, hold, exhale, hold]
+  onClose: () => void;
+}
+
+export function BreathingTool({ 
+  pattern = [4, 4, 4, 4], 
+  onClose 
+}: BreathingToolProps) {
+  const [phase, setPhase] = useState<BreathPhase>('inhale');
+  const [seconds, setSeconds] = useState(pattern[0]);
+  const [cycleCount, setCycleCount] = useState(0);
+  
+  const phases: BreathPhase[] = ['inhale', 'hold-in', 'exhale', 'hold-out'];
+  const phaseLabels = {
+    'inhale': 'Breathe in...',
+    'hold-in': 'Hold...',
+    'exhale': 'Breathe out...',
+    'hold-out': 'Hold...'
+  };
+  
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSeconds(s => {
+        if (s <= 1) {
+          // Move to next phase
+          const currentIndex = phases.indexOf(phase);
+          const nextIndex = (currentIndex + 1) % 4;
+          const nextPhase = phases[nextIndex];
+          
+          setPhase(nextPhase);
+          
+          if (nextIndex === 0) {
+            setCycleCount(c => c + 1);
+          }
+          
+          return pattern[nextIndex];
+        }
+        return s - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [phase, pattern]);
+  
+  return (
+    <div 
+      className="breathing-overlay" 
+      data-phase={phase}
+      onClick={onClose}
+    >
+      <button 
+        className="btn-ghost breathing-close" 
+        onClick={onClose}
+        aria-label="Close breathing exercise"
+      >
+        ✕
+      </button>
+      
+      <div className="breathing-content" onClick={e => e.stopPropagation()}>
+        <div className="breathing-visual">
+          <div className="breathing-circle" data-phase={phase} />
+          <span className="breathing-phase-text">
+            {phaseLabels[phase]}
+          </span>
+        </div>
+        
+        <div className="breathing-counter">
+          <span className="breathing-seconds">{seconds}</span>
+        </div>
+        
+        <p className="text-body-sm" style={{ color: 'var(--color-white-60)' }}>
+          Cycle {cycleCount + 1}
+        </p>
+      </div>
+      
+      <p className="breathing-instruction">
+        Tap anywhere to exit
+      </p>
+    </div>
+  );
+}
+```
+
+## 11.4 React Hook: useAnxietyState
+
+```tsx
+import { useState, useEffect, useCallback } from 'react';
+
+interface AnxietyHistory {
+  value: number;
+  timestamp: number;
+}
+
+interface AnxietyState {
+  current: number;
+  state: string;
+  velocity: number;  // dA/dt
+  acceleration: number;  // d²A/dt²
+  effective: number;
+}
+
+export function useAnxietyState(initialValue = 5) {
+  const [history, setHistory] = useState<AnxietyHistory[]>([
+    { value: initialValue, timestamp: Date.now() }
+  ]);
+  
+  const calculateDerivatives = useCallback(() => {
+    if (history.length < 2) {
+      return { velocity: 0, acceleration: 0 };
+    }
+    
+    const recent = history.slice(-5);  // Last 5 data points
+    
+    // Calculate velocity (dA/dt) - points per minute
+    const last = recent[recent.length - 1];
+    const prev = recent[recent.length - 2];
+    const timeDiffMin = (last.timestamp - prev.timestamp) / 60000;
+    const velocity = timeDiffMin > 0 
+      ? (last.value - prev.value) / timeDiffMin 
+      : 0;
+    
+    // Calculate acceleration (d²A/dt²)
+    let acceleration = 0;
+    if (recent.length >= 3) {
+      const prevPrev = recent[recent.length - 3];
+      const prevTimeDiff = (prev.timestamp - prevPrev.timestamp) / 60000;
+      const prevVelocity = prevTimeDiff > 0 
+        ? (prev.value - prevPrev.value) / prevTimeDiff 
+        : 0;
+      acceleration = timeDiffMin > 0 
+        ? (velocity - prevVelocity) / timeDiffMin 
+        : 0;
+    }
+    
+    return { velocity, acceleration };
+  }, [history]);
+  
+  const getState = useCallback((level: number): string => {
+    if (level <= 2) return 'grounded';
+    if (level <= 4) return 'alert';
+    if (level <= 6) return 'elevated';
+    if (level <= 8) return 'acute';
+    return 'crisis';
+  }, []);
+  
+  const getEffective = useCallback((
+    current: number, 
+    velocity: number, 
+    acceleration: number
+  ): number => {
+    let effective = current;
+    
+    if (velocity > 1.5) effective += 1;
+    if (velocity > 2.5) effective += 2;
+    if (acceleration > 0.5) effective = Math.max(effective, 8);
+    
+    return Math.min(10, Math.max(0, effective));
+  }, []);
+  
+  const setAnxiety = useCallback((value: number) => {
+    setHistory(h => [...h.slice(-19), { value, timestamp: Date.now() }]);
+  }, []);
+  
+  const current = history[history.length - 1].value;
+  const { velocity, acceleration } = calculateDerivatives();
+  const effective = getEffective(current, velocity, acceleration);
+  
+  const anxietyState: AnxietyState = {
+    current,
+    state: getState(effective),
+    velocity,
+    acceleration,
+    effective
+  };
+  
+  // Update root element
+  useEffect(() => {
+    document.documentElement.setAttribute('data-anxiety-state', anxietyState.state);
+    document.documentElement.setAttribute('data-anxiety-level', String(anxietyState.effective));
+  }, [anxietyState]);
+  
+  return {
+    ...anxietyState,
+    setAnxiety
+  };
+}
+```
+
+---
+
+# 12. ICON SET
+
+Use [Lucide Icons](https://lucide.dev/) for consistency. Key icons needed:
+
+```
+Navigation:
+- MessageCircle (Chat)
+- Wrench (Tools)  
+- Plane (Flight)
+- User (Profile)
+- Settings
+- X (Close)
+
+Actions:
+- Send (Arrow up-right)
+- ChevronRight (Arrow)
+- Plus
+- Minus
+
+Tools:
+- Wind (Breathing)
+- Eye (Grounding)
+- Volume2 (Sounds)
+- Cloud (Weather)
+- Heart (Heartbeat)
+- Brain (Mind)
+
+Status:
+- Check
+- AlertCircle
+- Info
+- Loader
+```
+
+---
+
+# 13. IMPLEMENTATION CHECKLIST
+
+## Phase 1: Foundation
+- [ ] Set up React + TypeScript project
+- [ ] Install dependencies (Lucide icons, fonts)
+- [ ] Create CSS variables file with all tokens
+- [ ] Create base layout components
+- [ ] Implement theme/anxiety state system
+
+## Phase 2: Core Components
+- [ ] Button components (primary, secondary, ghost, icon)
+- [ ] Chat message components (OTIE, user)
+- [ ] Chat input with send button
+- [ ] Anxiety slider
+- [ ] OTIE avatar (with animation states)
+- [ ] Typing indicator
+
+## Phase 3: Screens
+- [ ] Main chat screen layout
+- [ ] Tools screen
+- [ ] Breathing tool overlay
+- [ ] Onboarding/welcome screen
+
+## Phase 4: Animation & Polish
+- [ ] Message entry animations
+- [ ] State transition animations
+- [ ] OTIE avatar state animations
+- [ ] Breathing tool animations
+- [ ] Background gradient transitions
+
+## Phase 5: Responsiveness & Accessibility
+- [ ] Tablet breakpoint styling
+- [ ] Desktop breakpoint styling
+- [ ] Focus states
+- [ ] Reduced motion support
+- [ ] Screen reader testing
+
+---
+
+# END OF SPECIFICATION
+
+This document contains everything needed to build the OTIE web app UI. All values are exact and implementation-ready. The design system supports anxiety-adaptive behavior built into the foundation.
+
+**Questions? The key principles:**
+1. Dark theme only (cosmic space aesthetic)
+2. Soft, rounded, organic shapes
+3. Glowing violet/cyan accents
+4. Slow, calm animations that get slower at higher anxiety
+5. Progressive density reduction as anxiety increases
+6. The interface itself should feel like it's breathing
+
+Build this, and you build a UI that regulates nervous systems.

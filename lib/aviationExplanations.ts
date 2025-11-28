@@ -75,7 +75,9 @@ async function generateAviationExplanation(trigger: string) {
     messages: [{ role: "user", content: prompt }]
   });
 
-  const json = JSON.parse(completion.content[0].text);
+  const firstBlock = completion.content[0];
+  const text = firstBlock.type === 'text' ? firstBlock.text : '';
+  const json = JSON.parse(text);
 
   return {
     ...json,

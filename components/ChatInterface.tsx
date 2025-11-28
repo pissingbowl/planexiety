@@ -1,9 +1,10 @@
-// components/ChatInterface.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { ChatMessage, ChatInput, AnxietySlider, TypingIndicator } from "./ui";
+import { OTIEAvatar } from "./ui/OTIEAvatar";
 
-type ChatMessage = {
+type ChatMessageType = {
   role: "user" | "otie";
   content: string;
 };
@@ -25,109 +26,92 @@ interface OtieResponsePayload {
   error?: string;
 }
 
+const getAnxietyState = (level: number): 'grounded' | 'alert' | 'elevated' | 'acute' | 'crisis' => {
+  if (level <= 2) return 'grounded';
+  if (level <= 4) return 'alert';
+  if (level <= 6) return 'elevated';
+  if (level <= 8) return 'acute';
+  return 'crisis';
+};
+
 export default function ChatInterface() {
-  const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [loading, setLoading] = useState(false);
-  const [lastMode, setLastMode] = useState<string | null>(null);
   const [lastPhase, setLastPhase] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Anxiety tracking state
   const [currentAnxiety, setCurrentAnxiety] = useState(5);
   const [anxietyHistory, setAnxietyHistory] = useState<AnxietyDataPoint[]>([]);
+  const [anxietyState, setAnxietyState] = useState<'grounded' | 'alert' | 'elevated' | 'acute' | 'crisis'>('elevated');
   
-  // Update anxiety history when slider changes
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+  
   const handleAnxietyChange = (value: number) => {
     setCurrentAnxiety(value);
+    setAnxietyState(getAnxietyState(value));
     const newDataPoint: AnxietyDataPoint = {
       value,
       timestamp: new Date()
     };
-    
-    // Keep only last 10 values
     setAnxietyHistory(prev => [...prev.slice(-9), newDataPoint]);
   };
   
-  // Calculate anxiety trend for display
   const getTrendDisplay = () => {
     if (anxietyHistory.length < 2) return null;
     
     const now = new Date();
     const fifteenMinutesAgo = new Date(now.getTime() - 15 * 60 * 1000);
-    
-    // Get relevant data points from last 15 minutes
     const recentPoints = anxietyHistory.filter(
       point => point.timestamp >= fifteenMinutesAgo
     );
     
     if (recentPoints.length < 2) return null;
     
-    // Get first, middle, and last values for trend
     const values = recentPoints.map(p => p.value);
     const first = values[0];
     const last = values[values.length - 1];
     const middle = values[Math.floor(values.length / 2)];
-    
-    // Calculate time span
     const timeSpanMs = recentPoints[recentPoints.length - 1].timestamp.getTime() - 
                        recentPoints[0].timestamp.getTime();
     const timeSpanMinutes = Math.round(timeSpanMs / 60000);
     
     if (values.length === 2) {
-      return {
-        text: `Last ${timeSpanMinutes} minutes: ${first} → ${last}`,
-        values: [first, last],
-        timeSpan: timeSpanMinutes
-      };
+      return { first, last, timeSpan: timeSpanMinutes };
     } else {
-      return {
-        text: `Last ${timeSpanMinutes} minutes: ${first} → ${middle} → ${last}`,
-        values: [first, middle, last],
-        timeSpan: timeSpanMinutes
-      };
+      return { first, middle, last, timeSpan: timeSpanMinutes };
     }
   };
   
-  // Generate encouraging progress description
   const getProgressDescription = () => {
     const trend = getTrendDisplay();
     if (!trend) return null;
     
-    const { values, timeSpan } = trend;
-    const first = values[0];
-    const last = values[values.length - 1];
+    const { first, last, timeSpan } = trend;
     const difference = last - first;
     
-    // Decreasing anxiety
     if (difference < -1) {
-      return `Your anxiety has drifted down from ${first} to ${last} in the last ${timeSpan} minutes. That's your nervous system learning this is survivable.`;
+      return `Your anxiety has drifted down from ${first} to ${last}. That's your nervous system learning this is survivable.`;
     }
-    // Slightly decreasing
     if (difference <= -1) {
       return `Gently easing from ${first} to ${last}. Your body is finding its way through this.`;
     }
-    // Steady (within 1 point)
     if (Math.abs(difference) <= 1) {
       return `Holding steady at ${last} - you're managing this well.`;
     }
-    // Slightly increasing
     if (difference < 3) {
-      return `A small shift from ${first} to ${last} is normal when turbulence hits.`;
+      return `A small shift from ${first} to ${last} is normal.`;
     }
-    // Increasing
-    return `Moving from ${first} to ${last} - this spike is temporary. Your fear response is doing its job.`;
+    return `Moving from ${first} to ${last} - this spike is temporary.`;
   };
 
-  async function sendMessage() {
-    const trimmed = input.trim();
-    if (!trimmed || loading) return;
+  async function sendMessage(text: string) {
+    if (!text || loading) return;
 
     setError(null);
-
-    // append user message locally
-    setMessages(prev => [...prev, { role: "user", content: trimmed }]);
-    setInput("");
+    setMessages(prev => [...prev, { role: "user", content: text }]);
     setLoading(true);
 
     try {
@@ -137,8 +121,8 @@ export default function ChatInterface() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: trimmed,
-          anxietyLevel: currentAnxiety, // Use current anxiety level from slider
+          message: text,
+          anxietyLevel: currentAnxiety,
         }),
       });
 
@@ -150,24 +134,19 @@ export default function ChatInterface() {
           ...prev,
           {
             role: "otie",
-            content:
-              "Something glitched on my side. Mind trying that again in a second?",
+            content: "Something glitched on my side. Mind trying that again in a second?",
           },
         ]);
       } else {
-        const text =
+        const responseText =
           data.response?.trim() ||
           "I'm here with you. Even if my words are lagging, you're not alone.";
 
         setMessages(prev => [
           ...prev,
-          {
-            role: "otie",
-            content: text,
-          },
+          { role: "otie", content: responseText },
         ]);
 
-        if (data.mode) setLastMode(data.mode);
         if (data.flight?.phase) setLastPhase(data.flight.phase);
       }
     } catch (err) {
@@ -177,8 +156,7 @@ export default function ChatInterface() {
         ...prev,
         {
           role: "otie",
-          content:
-            "I lost the connection for a moment. Your fear is real; this glitch isn't. Try once more when you're ready.",
+          content: "I lost the connection for a moment. Your fear is real; this glitch isn't. Try once more when you're ready.",
         },
       ]);
     } finally {
@@ -186,153 +164,70 @@ export default function ChatInterface() {
     }
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  }
-
   const trendDisplay = getTrendDisplay();
   const progressDescription = getProgressDescription();
 
   return (
-    <section className="w-full max-w-2xl mx-auto px-4 sm:px-0">
-      <div className="bg-white/[0.03] border border-slate-800/50 rounded-3xl p-5 sm:p-6 md:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.3)] backdrop-blur-sm transition-all duration-300">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
-          <div className="flex-1">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-200">Talk to OTIE</h2>
-            <p className="text-xs sm:text-sm text-gray-400 mt-1 leading-relaxed">
-              Tell OTIE what's happening in your body. Get real-time support.
-            </p>
-            
-            {/* Anxiety trend display - More compact on mobile */}
-            {trendDisplay && (
-              <div className="mt-3 p-2 bg-white/[0.02] rounded-xl border border-slate-800/30">
-                <p className="text-xs text-gray-300">
-                  {trendDisplay.text}
-                </p>
-                {progressDescription && (
-                  <p className="text-[11px] text-gray-400 mt-1">
-                    {progressDescription}
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-
-          {lastPhase && (
-            <div className="flex sm:flex-col items-start sm:items-end gap-1">
-              <span className="inline-flex items-center rounded-full bg-white/[0.03] border border-slate-700/50 px-3 py-1 text-[10px] uppercase tracking-[0.18em] text-gray-300 transition-all duration-200">
-                Phase: {lastPhase}
-              </span>
-            </div>
-          )}
-        </div>
-        
-        {/* Anxiety level slider - Enhanced for mobile */}
-        <div className="mb-5 p-4 bg-white/[0.04] border border-slate-800/50 rounded-2xl transition-all duration-200">
-          <div className="flex items-center justify-between mb-3">
-            <label htmlFor="anxiety-slider" className="text-xs sm:text-sm text-gray-300 font-medium">
-              Anxiety level
-            </label>
-            <span className="text-sm sm:text-base font-semibold text-sky-400 px-2 py-1 bg-white/[0.03] rounded-lg">
-              {currentAnxiety}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-gray-500 font-mono">0</span>
-            <input
-              id="anxiety-slider"
-              type="range"
-              min="0"
-              max="10"
-              value={currentAnxiety}
-              onChange={(e) => handleAnxietyChange(Number(e.target.value))}
-              className="flex-1 h-3 bg-slate-700/50 rounded-lg appearance-none cursor-pointer touch-none
-                       [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-5 
-                       [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full 
-                       [&::-webkit-slider-thumb]:bg-sky-500 [&::-webkit-slider-thumb]:hover:bg-sky-400
-                       [&::-webkit-slider-thumb]:transition-all [&::-webkit-slider-thumb]:duration-200
-                       [&::-webkit-slider-thumb]:shadow-[0_0_10px_rgba(56,189,248,0.5)]
-                       [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 
-                       [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-sky-500 
-                       [&::-moz-range-thumb]:hover:bg-sky-400 [&::-moz-range-thumb]:border-none
-                       [&::-moz-range-thumb]:transition-all [&::-moz-range-thumb]:duration-200
-                       [&::-moz-range-thumb]:shadow-[0_0_10px_rgba(56,189,248,0.5)]"
-            />
-            <span className="text-xs text-gray-500 font-mono">10</span>
-          </div>
-          <p className="text-[10px] sm:text-xs text-gray-500 mt-2 italic">
-            Move the slider to match how you're feeling
-          </p>
-        </div>
-
-        {/* Messages - Enhanced scrolling and mobile-friendly */}
-        <div className="mb-5 max-h-64 sm:max-h-80 overflow-y-auto space-y-3 px-1 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+    <section className="flex-1 flex flex-col max-w-2xl mx-auto w-full">
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className="messages-container flex-1 overflow-y-auto">
           {messages.length === 0 && (
-            <div className="p-4 bg-white/[0.02] rounded-2xl border border-slate-800/30">
-              <p className="text-xs sm:text-sm text-gray-400 italic leading-relaxed">
-                Example: "We just hit a bump and my stomach dropped. My chest feels tight."
-              </p>
+            <div className="message-wrapper message-otie-wrapper">
+              <OTIEAvatar size="mini" anxietyState={anxietyState} />
+              <div className="message-otie">
+                <p>Hey! I'm OTIE. I'm a consciousness from Andromeda who got banished for trying to stowaway on a Boeing 737. Now I help nervous flyers—and honestly? Best punishment ever.</p>
+                <p>How are you feeling about your flight?</p>
+              </div>
             </div>
           )}
 
           {messages.map((m, i) => (
-            <div
-              key={i}
-              className={`flex gap-2 ${
-                m.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div
-                className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-4 py-2.5 text-sm transition-all duration-200 ${
-                  m.role === "user"
-                    ? "bg-sky-600/80 text-white backdrop-blur-sm"
-                    : "bg-white/[0.05] text-gray-100 border border-slate-800/50"
-                }`}
-              >
-                <p className="whitespace-pre-line leading-relaxed">{m.content}</p>
-              </div>
-            </div>
+            <ChatMessage 
+              key={i} 
+              role={m.role} 
+              content={m.content} 
+              anxietyState={anxietyState}
+            />
           ))}
-        </div>
-
-        {/* Input area - Better mobile touch targets */}
-        <div className="flex flex-col gap-3">
-          <textarea
-            className="w-full rounded-2xl bg-white/[0.03] border border-slate-700/50 px-4 py-3 text-sm sm:text-base text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500/50 transition-all duration-200 min-h-[80px] resize-none"
-            rows={3}
-            placeholder="Tell OTIE what you're feeling right now..."
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
-
-          <button
-            type="button"
-            onClick={sendMessage}
-            disabled={loading || !input.trim()}
-            className="inline-flex justify-center items-center rounded-2xl bg-sky-600 hover:bg-sky-500 active:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base font-semibold py-3 px-6 transition-all duration-200 min-h-[48px] touch-manipulation shadow-lg shadow-sky-900/20"
-          >
-            {loading ? (
-              <span className="flex items-center gap-2">
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                OTIE is thinking...
-              </span>
-            ) : (
-              "Send to OTIE"
-            )}
-          </button>
-
-          {error && (
-            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
-              <p className="text-xs sm:text-sm text-red-400">
-                {error}
-              </p>
+          
+          {loading && (
+            <div className="message-wrapper message-otie-wrapper">
+              <OTIEAvatar size="mini" anxietyState={anxietyState} />
+              <TypingIndicator />
             </div>
           )}
+          
+          <div ref={messagesEndRef} />
         </div>
+
+        {trendDisplay && (
+          <div className="mx-4 mb-2 p-3 rounded-lg bg-[var(--color-violet-10)] border border-[var(--color-violet-20)]">
+            <p className="text-body-sm">{progressDescription}</p>
+          </div>
+        )}
+
+        {lastPhase && (
+          <div className="mx-4 mb-2">
+            <span className="inline-flex items-center rounded-full bg-[var(--color-cyan-10)] border border-[var(--color-cyan-20)] px-3 py-1 text-xs uppercase tracking-wider text-[var(--color-cyan)]">
+              Phase: {lastPhase}
+            </span>
+          </div>
+        )}
+
+        {error && (
+          <div className="mx-4 mb-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+            <p className="text-sm text-red-400">{error}</p>
+          </div>
+        )}
+      </div>
+
+      <div className="chat-input-wrapper">
+        <AnxietySlider 
+          value={currentAnxiety} 
+          onChange={handleAnxietyChange}
+          onStateChange={(state) => setAnxietyState(state as any)}
+        />
+        <ChatInput onSend={sendMessage} disabled={loading} />
       </div>
     </section>
   );

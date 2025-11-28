@@ -1,105 +1,234 @@
 "use client";
 
+import { useState } from 'react';
 import FlightStatus from '../components/FlightStatus';
 import ChatInterface from "../components/ChatInterface";
 import { useAuth } from "../hooks/useAuth";
-import Image from "next/image";
+import { OTIEAvatar, Header, TabBar, ToolCard, BreathingTool } from '../components/ui';
+
+type TabId = 'chat' | 'tools' | 'flight' | 'profile';
 
 export default function Home() {
   const { user, isLoading, isAuthenticated } = useAuth();
+  const [activeTab, setActiveTab] = useState<TabId>('chat');
+  const [showBreathing, setShowBreathing] = useState(false);
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'chat':
+        return (
+          <div className="flex-1 flex flex-col">
+            <div className="text-center py-6">
+              <h1 className="text-6xl md:text-7xl font-bold mb-4 tracking-wider bg-gradient-to-r from-[var(--color-lavender)] via-[var(--color-violet-primary)] to-[var(--color-cyan)] bg-clip-text text-transparent">
+                OTIE
+              </h1>
+              <p className="text-center max-w-xl mx-auto text-[var(--color-white-80)]">
+                Your in-flight companion for turbulence, timing, and truth.
+              </p>
+            </div>
+            <ChatInterface />
+          </div>
+        );
+      
+      case 'tools':
+        return (
+          <div className="tools-container">
+            <section className="tools-section">
+              <h2 className="text-label">Breathing Exercises</h2>
+              <div className="tools-grid">
+                <ToolCard
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M8 2v4M16 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" />
+                    </svg>
+                  }
+                  title="Box Breathing"
+                  description="4-4-4-4 pattern to calm your nervous system"
+                  onClick={() => setShowBreathing(true)}
+                />
+                <ToolCard
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M2 12c0-4 3-8 10-8s10 4 10 8-3 8-10 8-10-4-10-8z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  }
+                  title="4-7-8 Breathing"
+                  description="Extended exhale for deep relaxation"
+                  onClick={() => setShowBreathing(true)}
+                />
+              </div>
+            </section>
+            
+            <section className="tools-section">
+              <h2 className="text-label">Grounding</h2>
+              <div className="tools-grid">
+                <ToolCard
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="12" cy="12" r="10" />
+                      <circle cx="12" cy="12" r="4" />
+                      <line x1="21.17" y1="8" x2="12" y2="8" />
+                      <line x1="3.95" y1="6.06" x2="8.54" y2="14" />
+                      <line x1="10.88" y1="21.94" x2="15.46" y2="14" />
+                    </svg>
+                  }
+                  title="5-4-3-2-1"
+                  description="Sensory grounding technique"
+                />
+              </div>
+            </section>
+            
+            <section className="tools-section">
+              <h2 className="text-label">Learn</h2>
+              <div className="tools-grid">
+                <ToolCard
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                    </svg>
+                  }
+                  title="Flight Sounds"
+                  description="Learn what every noise means"
+                />
+                <ToolCard
+                  icon={
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+                    </svg>
+                  }
+                  title="Turbulence 101"
+                  description="Why it happens and why it&apos;s safe"
+                />
+              </div>
+            </section>
+          </div>
+        );
+      
+      case 'flight':
+        return (
+          <div className="flex-1 overflow-y-auto p-4">
+            <FlightStatus />
+          </div>
+        );
+      
+      case 'profile':
+        return (
+          <div className="flex-1 flex flex-col items-center justify-center p-4">
+            <div className="w-full max-w-md space-y-6">
+              <div className="text-center">
+                <OTIEAvatar size="large" anxietyState="grounded" className="mx-auto mb-6" />
+                <h2 className="text-headline-2 mb-2">Your Profile</h2>
+              </div>
+              
+              {isLoading ? (
+                <div className="info-card">
+                  <p className="text-body-sm text-center">Loading...</p>
+                </div>
+              ) : isAuthenticated && user ? (
+                <div className="info-card">
+                  <div className="flex items-center gap-4 mb-4">
+                    {user.profileImageUrl && (
+                      <img 
+                        src={user.profileImageUrl} 
+                        alt="Profile" 
+                        className="w-16 h-16 rounded-full object-cover"
+                      />
+                    )}
+                    <div>
+                      <h3 className="text-headline-3">
+                        {user.firstName || 'Welcome back'}
+                      </h3>
+                      <p className="text-body-sm">{user.email}</p>
+                    </div>
+                  </div>
+                  <a
+                    href="/api/logout"
+                    className="btn-secondary w-full text-center"
+                  >
+                    Log out
+                  </a>
+                </div>
+              ) : (
+                <div className="info-card">
+                  <h3 className="info-card-title">Get Started</h3>
+                  <p className="info-card-text mb-4">
+                    Log in to save your progress and personalize your experience.
+                  </p>
+                  <a
+                    href="/api/login"
+                    className="btn-primary w-full text-center"
+                  >
+                    Log in with Replit
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+    }
+  };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-gradient-to-b from-gray-900 via-gray-950 to-blue-950 text-white py-8 px-4 relative overflow-hidden">
-      {/* OTIE Bubble Effect - creates visibility outline */}
+    <div className="app-container app-background" data-anxiety="grounded">
       <div 
-        className="fixed w-80 h-80 opacity-[0.45] pointer-events-none levitate-animation"
+        className="fixed w-80 h-80 opacity-20 pointer-events-none levitate-animation"
         style={{
-          background: 'radial-gradient(circle at center, transparent 30%, rgba(147, 197, 253, 0.4) 50%, transparent 70%)',
-          filter: 'blur(20px)',
+          background: 'var(--gradient-otie-glow)',
+          filter: 'blur(40px)',
         }}
       />
       
-      {/* OTIE Background Character - Much more visible with continuous levitation */}
       <div 
-        className="fixed w-72 h-72 opacity-[0.55] pointer-events-none levitate-animation"
+        className="fixed w-64 h-64 opacity-30 pointer-events-none levitate-animation"
         style={{
           backgroundImage: 'url("/otie-character.png")',
           backgroundSize: 'contain',
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',
-          filter: 'contrast(1.2)',
-          transformOrigin: 'center center',
+          filter: 'contrast(1.1)',
         }}
       />
-      
-      {/* Soft outer glow behind OTIE */}
-      <div 
-        className="fixed w-96 h-96 opacity-[0.15] pointer-events-none levitate-animation"
-        style={{
-          background: 'radial-gradient(circle, rgba(147, 197, 253, 0.6) 0%, transparent 70%)',
-          filter: 'blur(40px)',
-        }}
-      />
-      
-      {/* User Profile Section */}
-      <div className="absolute top-4 right-4 z-20">
-        {isLoading ? (
-          <div className="flex items-center space-x-2 bg-gray-800/70 backdrop-blur px-4 py-2 rounded-lg">
-            <span className="text-sm text-gray-400">Loading...</span>
-          </div>
-        ) : isAuthenticated && user ? (
-          <div className="flex items-center space-x-4 bg-gray-800/70 backdrop-blur px-4 py-2 rounded-lg">
-            {user.profileImageUrl && (
-              <img 
-                src={user.profileImageUrl} 
-                alt="Profile" 
-                className="w-8 h-8 rounded-full object-cover"
-              />
-            )}
-            <div className="flex flex-col">
-              <span className="text-sm font-medium">
-                {user.firstName || user.email || 'User'}
-              </span>
-              <a 
-                href="/api/logout"
-                className="text-xs text-red-400 hover:text-red-300 transition-colors"
-              >
-                Log out
+
+      <Header 
+        showLogo={activeTab === 'chat'}
+        title={activeTab === 'tools' ? 'Tools' : activeTab === 'flight' ? 'Flight' : activeTab === 'profile' ? 'Profile' : undefined}
+        showSettings={activeTab === 'chat'}
+        rightContent={
+          activeTab === 'chat' && !isLoading && (
+            isAuthenticated && user ? (
+              <div className="flex items-center gap-3">
+                {user.profileImageUrl && (
+                  <img 
+                    src={user.profileImageUrl} 
+                    alt="" 
+                    className="w-8 h-8 rounded-full object-cover"
+                  />
+                )}
+                <span className="text-sm text-[var(--color-white-80)]">
+                  {user.firstName || 'User'}
+                </span>
+              </div>
+            ) : (
+              <a href="/api/login" className="btn-ghost">
+                Log in
               </a>
-            </div>
-          </div>
-        ) : (
-          <a
-            href="/api/login"
-            className="flex items-center space-x-2 bg-sky-600 hover:bg-sky-700 px-4 py-2 rounded-lg transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-            </svg>
-            <span>Log in</span>
-          </a>
-        )}
-      </div>
-
-      <div className="w-full max-w-4xl space-y-8 relative z-10">
-        <div className="text-center">
-          <h1 className="text-8xl md:text-9xl font-bold mb-6 tracking-wider bg-gradient-to-r from-sky-400 via-blue-400 to-sky-500 bg-clip-text text-transparent">OTIE</h1>
-          <p className="text-center max-w-xl mx-auto text-lg text-gray-300">
-            Your in-flight companion for turbulence, timing, and truth.
-            {!isAuthenticated && !isLoading && (
-              <span className="block mt-2 text-sm text-gray-400">
-                Log in to access all features
-              </span>
-            )}
-          </p>
-        </div>
-
-        {/* Flight Status */}
-        <FlightStatus />
-
-        {/* Chat Interface */}
-        <ChatInterface />
-      </div>
-    </main>
+            )
+          )
+        }
+      />
+      
+      <main className="flex-1 flex flex-col overflow-hidden relative z-10">
+        {renderContent()}
+      </main>
+      
+      <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+      
+      {showBreathing && (
+        <BreathingTool onClose={() => setShowBreathing(false)} />
+      )}
+    </div>
   );
 }

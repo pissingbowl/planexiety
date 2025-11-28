@@ -1,16 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "../components/QueryProvider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -24,10 +20,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang="en" data-anxiety-state="grounded" data-anxiety-level="5">
+      <head>
+        <link rel="preconnect" href="https://api.fontshare.com" />
+        <link 
+          href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" 
+          rel="stylesheet" 
+        />
+      </head>
+      <body className={`${inter.variable} antialiased`}>
         <QueryProvider>
           {children}
         </QueryProvider>

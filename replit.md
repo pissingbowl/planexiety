@@ -8,37 +8,42 @@ The application tracks user anxiety levels, flight context, and provides persona
 
 ## Recent Changes
 
-**November 28, 2025 - Complete UI/UX Redesign**
-- Implemented comprehensive design system based on detailed UI/UX specification
-- New cosmic dark theme with violet/cyan accents and gradient backgrounds
-- Design tokens system in CSS variables:
-  - Colors: deep-space, violet-primary, lavender, cyan, graphite with transparency variants
-  - Gradients: cosmic backgrounds, OTIE glow, button gradients, slider tracks
-  - Shadows and glows: violet and cyan variants at multiple intensities
-  - Typography: Inter (display), Satoshi (body) fonts with full type scale
-  - Spacing: Consistent 4px-based scale (space-1 through space-24)
-  - Animation: Easing functions, duration scales, anxiety-adaptive timing
-- New UI Components (`components/ui/`):
-  - `OTIEAvatar`: Animated jellyfish avatar with anxiety-state animations
-  - `AnxietySlider`: Gradient slider with calm-to-panicked labels
-  - `TypingIndicator`: Animated three-dot indicator
-  - `BreathingTool`: Full-screen breathing exercise overlay
-  - `ChatMessage`: Styled message bubbles for OTIE and user
-  - `ChatInput`: Auto-expanding textarea with send button
-  - `TabBar`: Bottom navigation with Chat, Tools, Flight, Profile tabs
-  - `Header`: App header with OTIE branding and settings
-  - `ToolCard`: Card component for tools/features
-- Anxiety state system:
-  - Five states: grounded (0-2), alert (3-4), elevated (5-6), acute (7-8), crisis (9-10)
-  - `useAnxietyState` hook with velocity and acceleration tracking
-  - Data attributes for global state-aware styling
-  - Animation speed and transition duration scale with anxiety level
+**November 28, 2025 - Complete UI/UX Redesign + Cosmic Refinements**
+- Implemented comprehensive design system with "living companion in space" aesthetic
+- Cosmic dark theme with deep space background and violet nebula bloom:
+  - Radial gradient with violet glow emanating from top center
+  - Frosted glass effects (backdrop-filter: blur) on all UI elements
+  - Everything glows, floats, and breathes - not flat or static
+- Design tokens and visual effects:
+  - Colors: deep-space (#0F0A24), violet-primary (#7B4DEB), lavender (#B897FF), cyan (#8FF1E8)
+  - Frosted glass backgrounds with subtle inner glow and borders
+  - Consistent glow values: violet (rgba(123, 77, 235, 0.3)), cyan (rgba(143, 241, 232, 0.3))
+  - Typography: Inter SemiBold for display, Satoshi for body text
+- Key UI Components with cosmic styling:
+  - `OTIEAvatar`: Animated jellyfish with radial gradient, pulse animation, reactive to typing/anxiety states
+  - Mini avatar: 36px glowing orb with gentle pulse (gentlePulse animation)
+  - Message bubbles: Frosted glass with gradient background, backdrop-filter blur, subtle inner glow
+  - User messages: Cyan border hint to tie to user side of slider
+  - Anxiety slider: Glowing thumb with white/cyan glow effect
+  - Input field: Frosted glass with violet glow on focus
+  - Tab bar: Cosmic backdrop-filter, animated glowing active states (tabIconGlow, dotGlow animations)
+- Reactive jellyfish behavior:
+  - Brightness/saturation adjusts based on anxiety state
+  - Glows brighter when typing (is-typing class)
+  - Pulses in sync with breathing exercises
+- Spacing and breathing room:
+  - Messages gap: 24px, Message padding: 20px 24px
+  - Anxiety slider margin-bottom: 24px
+  - Tools grid gap: var(--space-4)
+- Animation system:
+  - gentlePulse: Mini avatar subtle breathing (4s cycle)
+  - typingGlow: Avatar reaction when OTIE is generating response
+  - tabIconGlow/dotGlow: Tab bar active state pulsing glow
+  - All animations slow down at higher anxiety levels
 - Accessibility features:
   - Focus-visible states with cyan outline
   - Reduced motion support
-  - Screen reader utilities (sr-only class)
   - WCAG AA color contrast compliance
-- Responsive breakpoints: Mobile-first with tablet (768px) and desktop (1024px) variants
 
 **November 19, 2025 - Enhanced Turbulence Analysis System**
 - Implemented comprehensive route-specific turbulence reporting using ALL available data sources
